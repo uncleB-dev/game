@@ -164,6 +164,41 @@ function makeStickGeometry(): THREE.ExtrudeGeometry {
   return geo;
 }
 
+/**
+ * D자 단면 컨벡스 프리즘 충돌체 — 시각 모델과 같은 단면.
+ * 평평한 '옆면'이 아예 없어서 옆으로 서지 못하고, 등이 둥글어
+ * 기울면 스스로 배(평) 또는 등(둥근) 쪽으로 굴러 내려온다.
+ */
+function makeStickShape(): CANNON.ConvexPolyhedron {
+  const hw = SW / 2;
+  const hh = SH / 2;
+  const hl = (SL - 0.1) / 2;
+  // 단면 폴리곤 (+z에서 볼 때 CCW): 평평한 배(아래) 2점 + 둥근 등(위) 아치 5점
+  const pts: [number, number][] = [
+    [-hw, -hh],
+    [hw, -hh],
+    [hw * 0.87, -hh + SH * 0.5],
+    [hw * 0.52, -hh + SH * 0.87],
+    [0, hh],
+    [-hw * 0.52, -hh + SH * 0.87],
+    [-hw * 0.87, -hh + SH * 0.5],
+  ];
+  const n = pts.length;
+  const vertices: CANNON.Vec3[] = [
+    ...pts.map(([x, y]) => new CANNON.Vec3(x, y, hl)),
+    ...pts.map(([x, y]) => new CANNON.Vec3(x, y, -hl)),
+  ];
+  const faces: number[][] = [
+    Array.from({ length: n }, (_, i) => i), // 앞 단면 (+z)
+    Array.from({ length: n }, (_, i) => 2 * n - 1 - i), // 뒤 단면 (-z)
+  ];
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    faces.push([i, i + n, j + n, j]); // 옆 둘레 사각형들
+  }
+  return new CANNON.ConvexPolyhedron({ vertices, faces });
+}
+
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
 type YutApi = { throwSticks: () => void; shakeKick: () => void };
@@ -367,13 +402,13 @@ export default function YutGame() {
 
       const body = new CANNON.Body({
         mass: 0.9,
-        shape: new CANNON.Box(new CANNON.Vec3(SW / 2, SH / 2, SL / 2)),
+        shape: makeStickShape(),
         material: matStick,
         linearDamping: 0.14,
-        angularDamping: 0.16,
+        angularDamping: 0.3, // 둥근 등 흔들림(rocking)을 빨리 감쇠
         allowSleep: true,
-        sleepSpeedLimit: 0.85,
-        sleepTimeLimit: 0.28,
+        sleepSpeedLimit: 1.1,
+        sleepTimeLimit: 0.22,
       });
       world.addBody(body);
       bodies.push(body);
@@ -457,7 +492,7 @@ export default function YutGame() {
       if (disposed) return;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      world.step(1 / 60, dt, 3);
+      world.step(1 / 60, dt, 5);
 
       // 안전망 — 속도 상한 + 경계 클램프
       const maxV = 26;

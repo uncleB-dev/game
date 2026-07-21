@@ -433,7 +433,7 @@ export default function DiceGame() {
       if (disposed) return;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      world.step(1 / 60, dt, 3);
+      world.step(1 / 60, dt, 5);
 
       // 안전망 — 어떤 경우에도 상자 밖으로 못 나가게:
       // 속도 상한(터널링 예방) + 경계 이탈 시 즉시 클램프·반사
