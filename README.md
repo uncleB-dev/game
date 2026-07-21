@@ -26,6 +26,7 @@ ladder/LadderGame.tsx → 사다리 게임 본체 ("use client")
 | 🎡 빅휠 | `/game/wheel` | 화려한 네온 룰렛, 항목 자유 편집(2~12) |
 | 🎲 주사위 던지기 | `/game/dice` | 3D 주사위 물리 굴림(1~6개), 흔들기 센서 |
 | 🪵 윷놀이 | `/game/yut` | 윷가락 4개 물리, 도·개·걸·윷·모·빽도 판정 |
+| ⚡ 스피드 터치 | `/game/touch` | 1~4명 화면 분할 동시 터치 대결 (10~60초) |
 
 ### 공용 유틸
 - `useShake.ts` — 흔들기(DeviceMotion) 감지 훅 (iOS 권한 처리 포함)

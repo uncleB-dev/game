@@ -3,10 +3,14 @@
    .arena 는 WebGL 캔버스 마운트 지점("폰 = 상자").
    ========================================================= */
 
-.arena {
+.arenaWrap {
   position: relative;
   width: 100%;
   height: min(58vh, 440px);
+}
+.arena {
+  position: absolute;
+  inset: 0;
   border-radius: 20px;
   overflow: hidden;
   background: #0c1126;
@@ -19,6 +23,44 @@
   display: block;
   width: 100% !important;
   height: 100% !important;
+}
+
+/* 전체화면(몰입) 모드 — 뷰포트 전체 사용 */
+.arenaFull {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  height: auto;
+}
+.arenaFull .arena {
+  border-radius: 0;
+}
+.fsBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  border: none;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 19px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.fsBtn:active { transform: scale(0.94); }
+.fsControls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 5;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 0 16px;
 }
 
 /* 컨트롤 */

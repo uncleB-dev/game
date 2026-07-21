@@ -209,6 +209,7 @@ export default function YutGame() {
     null,
   );
   const [sceneKey, setSceneKey] = useState(0);
+  const [expanded, setExpanded] = useState(false); // 전체화면(모바일 몰입) 모드
 
   const mountRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<YutApi | null>(null);
@@ -319,14 +320,15 @@ export default function YutGame() {
     const matStick = new CANNON.Material("stick");
     const matFloor = new CANNON.Material("floor");
     const matWall = new CANNON.Material("wall");
+    // 마찰을 낮춰 벽/다른 가락에 '기대어 버티는' 상황 자체를 줄인다
     world.addContactMaterial(
-      new CANNON.ContactMaterial(matStick, matFloor, { restitution: 0.3, friction: 0.38 }),
+      new CANNON.ContactMaterial(matStick, matFloor, { restitution: 0.3, friction: 0.3 }),
     );
     world.addContactMaterial(
-      new CANNON.ContactMaterial(matStick, matWall, { restitution: 0.35, friction: 0.25 }),
+      new CANNON.ContactMaterial(matStick, matWall, { restitution: 0.35, friction: 0.16 }),
     );
     world.addContactMaterial(
-      new CANNON.ContactMaterial(matStick, matStick, { restitution: 0.33, friction: 0.3 }),
+      new CANNON.ContactMaterial(matStick, matStick, { restitution: 0.33, friction: 0.2 }),
     );
 
     const addStatic = (shape: CANNON.Shape, x: number, y: number, z: number) => {
@@ -470,6 +472,8 @@ export default function YutGame() {
     // ── 루프 ──
     const tmpQ = new THREE.Quaternion();
     const upVec = new THREE.Vector3();
+    const axisVec = new THREE.Vector3();
+    const lastFix = [0, 0, 0, 0];
     let raf = 0;
     let last = performance.now();
     let disposed = false;
@@ -479,6 +483,19 @@ export default function YutGame() {
       tmpQ.set(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w);
       upVec.set(0, 1, 0).applyQuaternion(tmpQ);
       return upVec.y;
+    };
+
+    // 어중간하게 기운 가락을 길이축 중심으로 '스르륵 굴려' 눕힌다 (팝 없는 자연 보정)
+    const rollOver = (i: number, now: number) => {
+      lastFix[i] = now;
+      nudges[i]++;
+      const b = bodies[i];
+      b.wakeUp();
+      tmpQ.set(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w);
+      axisVec.set(0, 0, 1).applyQuaternion(tmpQ); // 가락 길이축(월드)
+      const s = Math.random() < 0.5 ? -1 : 1;
+      b.angularVelocity.set(axisVec.x * s * 7.5, axisVec.y * s * 7.5, axisVec.z * s * 7.5);
+      b.velocity.y += 1.0; // 굴림이 먹히도록 아주 살짝만 띄움
     };
 
     const finalize = () => {
@@ -519,25 +536,34 @@ export default function YutGame() {
       }
 
       if (throwingRef.current) {
+        // 완전히 잠들기 '전'에, 거의 멈춘 가락이 어중간하게 기울어 있으면 미리 굴려 눕힌다
+        // — 움직임이 남아있을 때 보정하므로 눈에 띄지 않고 자연스럽다
+        for (let i = 0; i < STICKS; i++) {
+          const b = bodies[i];
+          const speed = b.velocity.length() + b.angularVelocity.length() * 0.25;
+          if (
+            speed < 1.6 &&
+            Math.abs(backUpDot(b)) < 0.6 &&
+            now - lastFix[i] > 380 &&
+            nudges[i] < 6
+          ) {
+            rollOver(i, now);
+          }
+        }
+
         const allSleeping = bodies.every((b) => b.sleepState === CANNON.Body.SLEEPING);
         const timedOut = now - rollStart > 9000;
         if (allSleeping || timedOut) {
-          // 옆으로 서거나 걸쳐 기운 가락은 살짝 쳐서 재정착
-          let nudged = false;
+          let pending = false;
           if (!timedOut) {
             for (let i = 0; i < STICKS; i++) {
-              if (Math.abs(backUpDot(bodies[i])) < 0.72 && nudges[i] < 3) {
-                nudges[i]++;
-                bodies[i].wakeUp();
-                bodies[i].applyImpulse(
-                  new CANNON.Vec3(rand(-1.2, 1.2), 3.6, rand(-1.2, 1.2)),
-                  new CANNON.Vec3(rand(-0.2, 0.2), 0, rand(-0.4, 0.4)),
-                );
-                nudged = true;
+              if (Math.abs(backUpDot(bodies[i])) < 0.6 && nudges[i] < 6) {
+                rollOver(i, now);
+                pending = true;
               }
             }
           }
-          if (!nudged) finalize();
+          if (!pending) finalize();
         }
       }
 
@@ -594,9 +620,47 @@ export default function YutGame() {
     { threshold: 13, cooldownMs: 300 },
   );
 
+  // 전체화면 토글 — 크기가 바뀌므로 씬 재구축, 배경 스크롤 잠금
+  const toggleFs = () => {
+    setExpanded((v) => !v);
+    setSceneKey((k) => k + 1);
+  };
+  useEffect(() => {
+    document.body.style.overflow = expanded ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [expanded]);
+
   return (
     <div className={styles.panel}>
-      <div className={yut.arena} ref={mountRef} />
+      <div className={`${yut.arenaWrap} ${expanded ? yut.arenaFull : ""}`}>
+        <div className={yut.arena} ref={mountRef} />
+        <button
+          className={yut.fsBtn}
+          onClick={toggleFs}
+          aria-label={expanded ? "전체화면 닫기" : "전체화면"}
+        >
+          {expanded ? "✕" : "⛶"}
+        </button>
+        {expanded && (
+          <div className={yut.fsControls}>
+            <button
+              className={yut.throwBtn}
+              style={{ flex: "0 0 auto", minWidth: 170 }}
+              onClick={() => apiRef.current?.throwSticks()}
+              disabled={throwing}
+            >
+              {throwing ? "던지는 중… 🪵" : "🪵 던지기"}
+            </button>
+            {supported && !enabled && (
+              <button className={yut.sensorBtn} onClick={enable}>
+                📱 흔들기
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className={yut.controls}>
         <button

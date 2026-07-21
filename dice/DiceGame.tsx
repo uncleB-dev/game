@@ -155,6 +155,7 @@ export default function DiceGame() {
   const [rolling, setRolling] = useState(false);
   const [result, setResult] = useState<number[] | null>(null);
   const [sceneKey, setSceneKey] = useState(0);
+  const [expanded, setExpanded] = useState(false); // 전체화면(모바일 몰입) 모드
 
   const mountRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<DiceApi | null>(null);
@@ -547,6 +548,18 @@ export default function DiceGame() {
     { threshold: 13, cooldownMs: 300 },
   );
 
+  // 전체화면 토글 — 크기가 바뀌므로 씬 재구축, 배경 스크롤 잠금
+  const toggleFs = () => {
+    setExpanded((v) => !v);
+    setSceneKey((k) => k + 1);
+  };
+  useEffect(() => {
+    document.body.style.overflow = expanded ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [expanded]);
+
   const changeCount = (next: number) => {
     if (rollingRef.current) return;
     setResult(null);
@@ -585,7 +598,33 @@ export default function DiceGame() {
         </div>
       </div>
 
-      <div className={dice.arena} ref={mountRef} />
+      <div className={`${dice.arenaWrap} ${expanded ? dice.arenaFull : ""}`}>
+        <div className={dice.arena} ref={mountRef} />
+        <button
+          className={dice.fsBtn}
+          onClick={toggleFs}
+          aria-label={expanded ? "전체화면 닫기" : "전체화면"}
+        >
+          {expanded ? "✕" : "⛶"}
+        </button>
+        {expanded && (
+          <div className={dice.fsControls}>
+            <button
+              className={dice.rollBtn}
+              style={{ flex: "0 0 auto", minWidth: 170 }}
+              onClick={() => apiRef.current?.roll()}
+              disabled={rolling}
+            >
+              {rolling ? "굴리는 중… 🎲" : "🎲 굴리기"}
+            </button>
+            {supported && !enabled && (
+              <button className={dice.sensorBtn} onClick={enable}>
+                📱 흔들기
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className={dice.diceControls}>
         <button

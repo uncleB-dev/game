@@ -56,6 +56,14 @@ const GAMES: GameItem[] = [
     badge: "PLAY",
     ready: true,
   },
+  {
+    href: "/game/touch",
+    emoji: "⚡",
+    title: "스피드 터치",
+    desc: "1~4명이 화면을 나눠 동시에! 제한시간 안에 더 많이 터치하면 승리.",
+    badge: "PLAY",
+    ready: true,
+  },
 ];
 
 export default function GameHubPage() {
