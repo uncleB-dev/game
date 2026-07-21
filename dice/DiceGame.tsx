@@ -18,9 +18,12 @@ import { useShake } from "../useShake";
 
 const MIN = 1;
 const MAX = 6;
-const DIE = 1; // 주사위 한 변 (월드 단위)
+const DIE = 1.2; // 주사위 한 변 (월드 단위) — 카메라 상향 보정 포함, 화면상 기존 대비 20% 축소
 const DEPTH = 7.6; // 상자 세로(화면 높이 방향) 월드 크기
-const CEIL_Y = 5.4; // 천장 높이
+const CEIL_Y = 10.5; // 천장 높이 (높은 낙하 수용)
+const SAFE_H = 3.4; // 이 높이까지는 어떤 주사위도 화면 밖으로 안 나가게 카메라 프러스텀을 맞춤
+const DROP_MIN = 6.5; // 낙하 시작 높이 (기존 1.6~3.2 의 약 3배)
+const DROP_MAX = 8.5;
 
 // BoxGeometry 머티리얼 그룹 순서(+x,-x,+y,-y,+z,-z)에 대응하는 눈금 (마주보는 면 합=7)
 const FACE_VALUES = [1, 6, 2, 5, 3, 4] as const;
@@ -181,10 +184,13 @@ export default function DiceGame() {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#0c1126");
 
-    const fov = 42;
-    const camY = D / 2 / Math.tan(THREE.MathUtils.degToRad(fov / 2));
+    // 카메라 — SAFE_H 높이의 평면이 화면에 꽉 차게 맞춤:
+    // 그 아래(튀는 구간)에서는 원근으로 커져도 절대 화면 밖으로 안 나간다.
+    const fov = 40;
+    const tanHalf = Math.tan(THREE.MathUtils.degToRad(fov / 2));
+    const camY = SAFE_H + D / 2 / tanHalf;
     const camera = new THREE.PerspectiveCamera(fov, cw / ch, 0.1, 100);
-    camera.position.set(0, camY, camY * 0.14); // 거의 수직 + 살짝 기울여 입체감
+    camera.position.set(0, camY, camY * 0.1); // 거의 수직 + 살짝 기울여 입체감
     camera.lookAt(0, 0, 0);
 
     // 조명 — 부드러운 스튜디오 + 브랜드 컬러 액센트
@@ -206,11 +212,13 @@ export default function DiceGame() {
     orange.position.set(W / 2, 2.6, D / 2);
     scene.add(orange);
 
-    // 바닥
+    // 바닥 — 카메라가 높아 플레이 영역 밖까지 보이므로, 가시 영역 전체를 덮게 확장
+    const visD = 2 * camY * tanHalf + 2;
+    const visW = visD * (cw / ch) + 2;
     const floorTex = makeFloorTexture();
-    floorTex.repeat.set(W / 2.4, D / 2.4);
+    floorTex.repeat.set(visW / 2.4, visD / 2.4);
     const floorMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(W, D),
+      new THREE.PlaneGeometry(visW, visD),
       new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.9, metalness: 0.05 }),
     );
     floorMesh.rotation.x = -Math.PI / 2;
@@ -287,8 +295,10 @@ export default function DiceGame() {
     const rebuildDice = (n: number) => {
       clearDice();
       nudges = Array.from({ length: n }, () => 0);
-      const gap = 0.55;
-      const totalW = n * DIE + (n - 1) * gap;
+      const gap = DIE * 0.5;
+      // 좁은 화면에서는 여러 줄로 나눠 배치 (화면 밖 배치 방지)
+      const perRow = Math.max(1, Math.min(n, Math.floor((W - DIE) / (DIE + gap)) + 1));
+      const rows = Math.ceil(n / perRow);
       for (let i = 0; i < n; i++) {
         const mesh = new THREE.Mesh(diceGeo, faceMats);
         mesh.castShadow = true;
@@ -304,9 +314,14 @@ export default function DiceGame() {
           sleepSpeedLimit: 0.9,
           sleepTimeLimit: 0.28,
         });
-        // 대기 배치: 중앙 한 줄, i번째 눈금이 위를 보게
-        const x = -totalW / 2 + DIE / 2 + i * (DIE + gap);
-        body.position.set(x, DIE / 2 + 0.001, D * 0.22);
+        // 대기 배치: 중앙 정렬 그리드, i번째 눈금이 위를 보게
+        const row = Math.floor(i / perRow);
+        const inRow = Math.min(perRow, n - row * perRow);
+        const rowW = inRow * DIE + (inRow - 1) * gap;
+        const col = i % perRow;
+        const x = -rowW / 2 + DIE / 2 + col * (DIE + gap);
+        const z = D * 0.18 + (row - (rows - 1) / 2) * (DIE + gap);
+        body.position.set(x, DIE / 2 + 0.001, z);
         const showV = (i % 6) + 1;
         const [ax, ay, az] = AXIS_OF[showV];
         const q = new THREE.Quaternion().setFromUnitVectors(
@@ -328,14 +343,17 @@ export default function DiceGame() {
       nudges = nudges.map(() => 0);
     };
 
-    // 버튼: 상자에 세게 던져 넣기
+    // 버튼: 높은 곳(기존 3배)에서 중앙 상공에 흩뿌려 떨어뜨리기.
+    // 높이 뜬 동안 원근으로 커져도 화면 안에 있도록 수평 스폰을 중앙부로 제한.
     const roll = () => {
       wakeAll();
+      const sx = Math.max(0.4, Math.min(W / 2 - DIE, 1.2));
+      const sz = Math.max(0.4, Math.min(D / 2 - DIE, 1.2));
       for (const b of bodies) {
         b.wakeUp();
-        b.position.set(rand(-W / 2 + 1, W / 2 - 1), rand(1.6, 3.2), rand(-D / 2 + 1, D / 2 - 1));
+        b.position.set(rand(-sx, sx), rand(DROP_MIN, DROP_MAX), rand(-sz, sz));
         b.quaternion.setFromEuler(rand(0, Math.PI * 2), rand(0, Math.PI * 2), rand(0, Math.PI * 2));
-        b.velocity.set(rand(-9, 9), rand(-2, 2), rand(-9, 9));
+        b.velocity.set(rand(-4, 4), rand(-4, -1), rand(-4, 4));
         b.angularVelocity.set(rand(-24, 24), rand(-24, 24), rand(-24, 24));
       }
     };
