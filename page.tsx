@@ -64,6 +64,14 @@ const GAMES: GameItem[] = [
     badge: "PLAY",
     ready: true,
   },
+  {
+    href: "/game/lotto",
+    emoji: "🎱",
+    title: "로또 추첨기",
+    desc: "에어젯 바람으로 볼을 섞고 하나씩 추첨! 번호·개수 설정 가능.",
+    badge: "PLAY",
+    ready: true,
+  },
 ];
 
 export default function GameHubPage() {

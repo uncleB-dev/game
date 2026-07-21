@@ -1,0 +1,237 @@
+/* =========================================================
+   로또 번호 추첨기 — 유리 드럼 + 에어젯 물리 시뮬레이션.
+   ========================================================= */
+
+.settingRow {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.arenaWrap {
+  position: relative;
+  width: 100%;
+  height: min(62vh, 480px);
+}
+.arena {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0e1330;
+  box-shadow:
+    inset 0 2px 20px rgba(0, 0, 0, 0.5),
+    0 18px 40px -22px rgba(14, 19, 48, 0.8);
+  touch-action: none;
+}
+.arena canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+.arenaFull {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  height: auto;
+}
+.arenaFull .arena { border-radius: 0; }
+.fsBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  border: none;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 19px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.fsBtn:active { transform: scale(0.94); }
+.fsControls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 5;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+/* 뽑힌 번호 행 */
+.drawRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 16px;
+}
+.ballChip {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 900;
+  color: #161a2c;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85), transparent 42%),
+    var(--bc, #ddd);
+  box-shadow: 0 4px 10px -3px rgba(0, 0, 0, 0.35);
+  animation: chipPop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes chipPop {
+  0% { transform: scale(0.3); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.ballChipEmpty {
+  background: #f1f3f5;
+  color: #b2bec3;
+  box-shadow: none;
+  animation: none;
+}
+
+/* 컨트롤 */
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 18px;
+}
+.mixBtn {
+  flex: 1;
+  min-width: 200px;
+  height: 56px;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #1a5cff, #6c5ce7);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 12px 26px -10px rgba(26, 92, 255, 0.65);
+  transition: transform 0.12s ease;
+}
+.mixBtn:active { transform: scale(0.97); }
+.pickBtn {
+  flex: 1;
+  min-width: 180px;
+  height: 56px;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #ff6a00, #ff3d71);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 12px 26px -10px rgba(255, 61, 113, 0.7);
+  transition: transform 0.1s ease;
+}
+.pickBtn:active { transform: scale(0.96); }
+.autoBtn {
+  height: 56px;
+  padding: 0 20px;
+  border-radius: 15px;
+  border: 1.5px solid #d7deea;
+  background: #fff;
+  color: #1a1a2e;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.autoBtn:hover { border-color: #1a5cff; }
+.autoOn {
+  border-color: #ff6a00;
+  background: #fff1e6;
+  color: #d35400;
+}
+
+.hintRow {
+  text-align: center;
+  font-size: 13px;
+  color: #6b7a9a;
+  margin: 14px 0 0;
+}
+
+/* 결과 오버레이 */
+.resultOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 12, 30, 0.76);
+  backdrop-filter: blur(4px);
+}
+.resultCard {
+  position: relative;
+  z-index: 45;
+  text-align: center;
+  padding: 32px 38px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #ffffff, #eef2ff);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.55);
+  max-width: 92vw;
+  animation: cardPop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes cardPop {
+  0% { transform: scale(0.6) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.resultEyebrow {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #ff6a00;
+  margin: 0 0 16px;
+}
+.resultBalls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.resultBall {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 23px;
+  font-weight: 900;
+  color: #161a2c;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.9), transparent 44%),
+    var(--bc, #ddd);
+  box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.4);
+  animation: ballIn 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+@keyframes ballIn {
+  0% { transform: scale(0.2) translateY(24px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.resultOrder {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #6b7a9a;
+  margin: 0 0 20px;
+}
+.resultBtns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
