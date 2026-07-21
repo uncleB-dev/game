@@ -1,73 +1,25 @@
 /* =========================================================
-   주사위 던지기 — CSS 3D 큐브가 물리(위치/속도/벽 반사)로 굴러다닌다.
-   흔들기(센서) 또는 버튼으로 굴리고, 멈추면 결과를 화려하게 표시.
+   주사위 던지기 — three.js + cannon-es 실제 3D 물리 시뮬레이션.
+   .arena 는 WebGL 캔버스 마운트 지점("폰 = 상자").
    ========================================================= */
 
 .arena {
   position: relative;
   width: 100%;
-  height: min(52vh, 400px);
+  height: min(58vh, 440px);
   border-radius: 20px;
   overflow: hidden;
-  perspective: 1600px;
-  background:
-    radial-gradient(120% 100% at 50% -20%, #20305e 0%, #131a33 55%, #0d1226 100%);
+  background: #0c1126;
   box-shadow:
     inset 0 2px 20px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 2px rgba(124, 137, 255, 0.18);
+    0 18px 40px -22px rgba(12, 17, 38, 0.8);
   touch-action: none;
 }
-/* 바닥 격자 느낌 */
-.arena::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(124, 137, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(124, 137, 255, 0.08) 1px, transparent 1px);
-  background-size: 34px 34px;
-  mask-image: radial-gradient(120% 90% at 50% 30%, #000 40%, transparent 85%);
+.arena canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }
-
-.dieSlot {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--die, 60px);
-  height: var(--die, 60px);
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-.cube {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-.face {
-  position: absolute;
-  width: var(--die, 60px);
-  height: var(--die, 60px);
-  border-radius: 12px;
-  background: linear-gradient(145deg, #ffffff 0%, #eef1f8 70%, #dfe4ef 100%);
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.06);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  padding: 12%;
-  box-sizing: border-box;
-  backface-visibility: hidden;
-}
-.pip {
-  width: 74%;
-  height: 74%;
-  align-self: center;
-  justify-self: center;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #4b5568, #1a1f2e);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-}
-.pipEmpty { visibility: hidden; }
 
 /* 컨트롤 */
 .diceControls {
@@ -116,7 +68,14 @@
   color: #00997a;
 }
 
-/* 결과 오버레이 (주사위/윷 공용 느낌) */
+.hintRow {
+  text-align: center;
+  font-size: 13px;
+  color: #6b7a9a;
+  margin: 14px 0 0;
+}
+
+/* 결과 오버레이 */
 .resultOverlay {
   position: fixed;
   inset: 0;
@@ -155,7 +114,7 @@
   height: 44px;
   border-radius: 10px;
   background: linear-gradient(145deg, #fff, #e6eaf3);
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.06), 0 4px 10px -4px rgba(0,0,0,0.3);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.06), 0 4px 10px -4px rgba(0, 0, 0, 0.3);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
@@ -171,6 +130,7 @@
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #4b5568, #1a1f2e);
 }
+.pipEmpty { visibility: hidden; }
 .resultSumLabel {
   font-size: 13px;
   font-weight: 800;
@@ -191,9 +151,3 @@
   animation: shine 2.4s linear infinite;
 }
 @keyframes shine { to { background-position: 200% center; } }
-.hintRow {
-  text-align: center;
-  font-size: 13px;
-  color: #6b7a9a;
-  margin: 14px 0 0;
-}
