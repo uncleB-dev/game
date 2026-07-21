@@ -225,12 +225,14 @@ export default function DiceGame() {
     floorMesh.receiveShadow = true;
     scene.add(floorMesh);
 
-    // 네온 트레이 테두리 (좌우 블루 / 상하 오렌지)
-    const rimH = 1.65; // 벽 높이 (기존 0.55 의 3배)
+    // 트레이 벽 — 하단 네온 받침 + 반투명 유리 패널 + 상단 발광 엣지.
+    // 유리라서 벽 근처/뒤의 주사위가 가려지지 않고 비쳐 보인다("벽 침범" 착시 제거).
+    const rimH = 0.5;
     const rimT = 0.22;
-    const mkRim = (w: number, d: number, x: number, z: number, color: number) => {
-      const m = new THREE.Mesh(
-        new THREE.BoxGeometry(w, rimH, d),
+    const GLASS_H = 2.6;
+    const mkWall = (w: number, d: number, x: number, z: number, color: number) => {
+      const base = new THREE.Mesh(
+        new THREE.BoxGeometry(Math.max(w, rimT), rimH, Math.max(d, rimT)),
         new THREE.MeshStandardMaterial({
           color: 0x10162e,
           emissive: color,
@@ -238,13 +240,38 @@ export default function DiceGame() {
           roughness: 0.5,
         }),
       );
-      m.position.set(x, rimH / 2, z);
-      scene.add(m);
+      base.position.set(x, rimH / 2, z);
+      scene.add(base);
+      const glass = new THREE.Mesh(
+        new THREE.BoxGeometry(Math.max(w * 0.35, 0.07), GLASS_H, Math.max(d * 0.35, 0.07)),
+        new THREE.MeshPhysicalMaterial({
+          color,
+          transparent: true,
+          opacity: 0.15,
+          roughness: 0.18,
+          metalness: 0,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        }),
+      );
+      glass.position.set(x, GLASS_H / 2, z);
+      scene.add(glass);
+      const edge = new THREE.Mesh(
+        new THREE.BoxGeometry(Math.max(w, rimT), 0.07, Math.max(d, rimT)),
+        new THREE.MeshStandardMaterial({
+          color: 0x10162e,
+          emissive: color,
+          emissiveIntensity: 1.15,
+          roughness: 0.4,
+        }),
+      );
+      edge.position.set(x, GLASS_H + 0.035, z);
+      scene.add(edge);
     };
-    mkRim(rimT, D + rimT * 2, -W / 2 - rimT / 2, 0, 0x1a5cff);
-    mkRim(rimT, D + rimT * 2, W / 2 + rimT / 2, 0, 0x1a5cff);
-    mkRim(W, rimT, 0, -D / 2 - rimT / 2, 0xff6a00);
-    mkRim(W, rimT, 0, D / 2 + rimT / 2, 0xff6a00);
+    mkWall(rimT, D + rimT * 2, -W / 2 - rimT / 2, 0, 0x1a5cff);
+    mkWall(rimT, D + rimT * 2, W / 2 + rimT / 2, 0, 0x1a5cff);
+    mkWall(W, rimT, 0, -D / 2 - rimT / 2, 0xff6a00);
+    mkWall(W, rimT, 0, D / 2 + rimT / 2, 0xff6a00);
 
     // ── 물리 월드 ──
     const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -34, 0) });
@@ -278,12 +305,12 @@ export default function DiceGame() {
     });
     floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     world.addBody(floorBody);
-    const wallT = 0.5;
-    addStatic(new CANNON.Box(new CANNON.Vec3(wallT / 2, CEIL_Y, D / 2 + 1)), -W / 2 - wallT / 2, CEIL_Y / 2, 0);
-    addStatic(new CANNON.Box(new CANNON.Vec3(wallT / 2, CEIL_Y, D / 2 + 1)), W / 2 + wallT / 2, CEIL_Y / 2, 0);
-    addStatic(new CANNON.Box(new CANNON.Vec3(W / 2 + 1, CEIL_Y, wallT / 2)), 0, CEIL_Y / 2, -D / 2 - wallT / 2);
-    addStatic(new CANNON.Box(new CANNON.Vec3(W / 2 + 1, CEIL_Y, wallT / 2)), 0, CEIL_Y / 2, D / 2 + wallT / 2);
-    addStatic(new CANNON.Box(new CANNON.Vec3(W / 2 + 1, wallT / 2, D / 2 + 1)), 0, CEIL_Y + wallT / 2, 0); // 천장
+    const wallT = 2.0; // 두꺼운 벽 — 고속 주사위 터널링 방지 (안쪽 면은 ±W/2, ±D/2 그대로)
+    addStatic(new CANNON.Box(new CANNON.Vec3(wallT / 2, CEIL_Y, D / 2 + wallT)), -W / 2 - wallT / 2, CEIL_Y / 2, 0);
+    addStatic(new CANNON.Box(new CANNON.Vec3(wallT / 2, CEIL_Y, D / 2 + wallT)), W / 2 + wallT / 2, CEIL_Y / 2, 0);
+    addStatic(new CANNON.Box(new CANNON.Vec3(W / 2 + wallT, CEIL_Y, wallT / 2)), 0, CEIL_Y / 2, -D / 2 - wallT / 2);
+    addStatic(new CANNON.Box(new CANNON.Vec3(W / 2 + wallT, CEIL_Y, wallT / 2)), 0, CEIL_Y / 2, D / 2 + wallT / 2);
+    addStatic(new CANNON.Box(new CANNON.Vec3(W / 2 + wallT, wallT / 2, D / 2 + wallT)), 0, CEIL_Y + wallT / 2, 0); // 천장
 
     // ── 주사위 ──
     const diceGeo = new RoundedBoxGeometry(DIE, DIE, DIE, 4, 0.09);
@@ -414,6 +441,24 @@ export default function DiceGame() {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       world.step(1 / 60, dt, 3);
+
+      // 안전망 — 어떤 경우에도 상자 밖으로 못 나가게:
+      // 속도 상한(터널링 예방) + 경계 이탈 시 즉시 클램프·반사
+      const maxV = 28;
+      const margin = DIE * 0.45;
+      const bx = W / 2 - margin;
+      const bz = D / 2 - margin;
+      for (const b of bodies) {
+        const v = b.velocity;
+        const sp = v.length();
+        if (sp > maxV) v.scale(maxV / sp, v);
+        if (b.position.x < -bx) { b.position.x = -bx; if (v.x < 0) v.x = -v.x * 0.4; }
+        else if (b.position.x > bx) { b.position.x = bx; if (v.x > 0) v.x = -v.x * 0.4; }
+        if (b.position.z < -bz) { b.position.z = -bz; if (v.z < 0) v.z = -v.z * 0.4; }
+        else if (b.position.z > bz) { b.position.z = bz; if (v.z > 0) v.z = -v.z * 0.4; }
+        if (b.position.y > CEIL_Y - margin) { b.position.y = CEIL_Y - margin; if (v.y > 0) v.y = -v.y * 0.4; }
+        if (b.position.y < -0.5) { b.position.y = DIE; v.set(0, 0, 0); } // 극단 이탈 복구
+      }
 
       for (let i = 0; i < bodies.length; i++) {
         const b = bodies[i];
