@@ -225,53 +225,46 @@ export default function DiceGame() {
     floorMesh.receiveShadow = true;
     scene.add(floorMesh);
 
-    // 트레이 벽 — 하단 네온 받침 + 반투명 유리 패널 + 상단 발광 엣지.
-    // 유리라서 벽 근처/뒤의 주사위가 가려지지 않고 비쳐 보인다("벽 침범" 착시 제거).
-    const rimH = 0.5;
-    const rimT = 0.22;
+    // 유리벽 — 벽당 단일 요소: 아래는 투명, 위로 갈수록 진해지고 최상단이 발광 라인인
+    // 그라데이션 패널. (받침+엣지 이중 프레임으로 보이던 문제 해결)
     const GLASS_H = 2.6;
-    const mkWall = (w: number, d: number, x: number, z: number, color: number) => {
-      const base = new THREE.Mesh(
-        new THREE.BoxGeometry(Math.max(w, rimT), rimH, Math.max(d, rimT)),
-        new THREE.MeshStandardMaterial({
-          color: 0x10162e,
-          emissive: color,
-          emissiveIntensity: 0.75,
-          roughness: 0.5,
-        }),
-      );
-      base.position.set(x, rimH / 2, z);
-      scene.add(base);
-      const glass = new THREE.Mesh(
-        new THREE.BoxGeometry(Math.max(w * 0.35, 0.07), GLASS_H, Math.max(d * 0.35, 0.07)),
-        new THREE.MeshPhysicalMaterial({
-          color,
+    const glassTex = (hex: string) => {
+      const c = document.createElement("canvas");
+      c.width = 32;
+      c.height = 256;
+      const g = c.getContext("2d")!;
+      const grad = g.createLinearGradient(0, 256, 0, 0);
+      grad.addColorStop(0, hex + "00");
+      grad.addColorStop(0.7, hex + "2e");
+      grad.addColorStop(0.95, hex + "55");
+      grad.addColorStop(0.955, hex + "ff"); // 최상단 발광 라인
+      grad.addColorStop(1, hex + "ff");
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 32, 256);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    };
+    const blueTex = glassTex("#4b7bff");
+    const orangeTex = glassTex("#ff8a3d");
+    const mkWall = (len: number, x: number, z: number, rotY: number, tex: THREE.CanvasTexture) => {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(len, GLASS_H),
+        new THREE.MeshBasicMaterial({
+          map: tex,
           transparent: true,
-          opacity: 0.15,
-          roughness: 0.18,
-          metalness: 0,
           depthWrite: false,
           side: THREE.DoubleSide,
         }),
       );
-      glass.position.set(x, GLASS_H / 2, z);
-      scene.add(glass);
-      const edge = new THREE.Mesh(
-        new THREE.BoxGeometry(Math.max(w, rimT), 0.07, Math.max(d, rimT)),
-        new THREE.MeshStandardMaterial({
-          color: 0x10162e,
-          emissive: color,
-          emissiveIntensity: 1.15,
-          roughness: 0.4,
-        }),
-      );
-      edge.position.set(x, GLASS_H + 0.035, z);
-      scene.add(edge);
+      m.position.set(x, GLASS_H / 2, z);
+      m.rotation.y = rotY;
+      scene.add(m);
     };
-    mkWall(rimT, D + rimT * 2, -W / 2 - rimT / 2, 0, 0x1a5cff);
-    mkWall(rimT, D + rimT * 2, W / 2 + rimT / 2, 0, 0x1a5cff);
-    mkWall(W, rimT, 0, -D / 2 - rimT / 2, 0xff6a00);
-    mkWall(W, rimT, 0, D / 2 + rimT / 2, 0xff6a00);
+    mkWall(D, -W / 2, 0, Math.PI / 2, blueTex);
+    mkWall(D, W / 2, 0, Math.PI / 2, blueTex);
+    mkWall(W, 0, -D / 2, 0, orangeTex);
+    mkWall(W, 0, D / 2, 0, orangeTex);
 
     // ── 물리 월드 ──
     const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -34, 0) });
@@ -529,6 +522,8 @@ export default function DiceGame() {
         m.dispose();
       }
       floorTex.dispose();
+      blueTex.dispose();
+      orangeTex.dispose();
       scene.traverse((o) => {
         if (o instanceof THREE.Mesh) {
           o.geometry?.dispose();
