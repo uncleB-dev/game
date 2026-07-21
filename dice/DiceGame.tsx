@@ -226,7 +226,7 @@ export default function DiceGame() {
     scene.add(floorMesh);
 
     // 네온 트레이 테두리 (좌우 블루 / 상하 오렌지)
-    const rimH = 0.55;
+    const rimH = 1.65; // 벽 높이 (기존 0.55 의 3배)
     const rimT = 0.22;
     const mkRim = (w: number, d: number, x: number, z: number, color: number) => {
       const m = new THREE.Mesh(
@@ -250,16 +250,32 @@ export default function DiceGame() {
     const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -34, 0) });
     world.broadphase = new CANNON.SAPBroadphase(world);
     world.allowSleep = true;
-    world.defaultContactMaterial.restitution = 0.34;
-    world.defaultContactMaterial.friction = 0.24;
+
+    // 접촉 재질 — 주사위끼리/벽 반발은 바닥보다 10% 높게
+    const matDice = new CANNON.Material("dice");
+    const matFloor = new CANNON.Material("floor");
+    const matWall = new CANNON.Material("wall");
+    world.addContactMaterial(
+      new CANNON.ContactMaterial(matDice, matFloor, { restitution: 0.34, friction: 0.24 }),
+    );
+    world.addContactMaterial(
+      new CANNON.ContactMaterial(matDice, matWall, { restitution: 0.374, friction: 0.2 }),
+    );
+    world.addContactMaterial(
+      new CANNON.ContactMaterial(matDice, matDice, { restitution: 0.374, friction: 0.2 }),
+    );
 
     const addStatic = (shape: CANNON.Shape, x: number, y: number, z: number) => {
-      const b = new CANNON.Body({ type: CANNON.Body.STATIC, shape });
+      const b = new CANNON.Body({ type: CANNON.Body.STATIC, shape, material: matWall });
       b.position.set(x, y, z);
       world.addBody(b);
     };
     // 바닥 — Plane 기본 법선(+z)을 위(+y)로 회전
-    const floorBody = new CANNON.Body({ type: CANNON.Body.STATIC, shape: new CANNON.Plane() });
+    const floorBody = new CANNON.Body({
+      type: CANNON.Body.STATIC,
+      shape: new CANNON.Plane(),
+      material: matFloor,
+    });
     floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     world.addBody(floorBody);
     const wallT = 0.5;
@@ -308,6 +324,7 @@ export default function DiceGame() {
         const body = new CANNON.Body({
           mass: 1,
           shape: new CANNON.Box(new CANNON.Vec3(DIE / 2 - 0.02, DIE / 2 - 0.02, DIE / 2 - 0.02)),
+          material: matDice,
           linearDamping: 0.12,
           angularDamping: 0.12,
           allowSleep: true,
@@ -349,12 +366,14 @@ export default function DiceGame() {
       wakeAll();
       const sx = Math.max(0.4, Math.min(W / 2 - DIE, 1.2));
       const sz = Math.max(0.4, Math.min(D / 2 - DIE, 1.2));
+      // 낙하 중 확실히 회전하도록 축별 최소 회전속도 보장 (0 근처 랜덤 방지)
+      const spin = () => (Math.random() < 0.5 ? -1 : 1) * rand(14, 34);
       for (const b of bodies) {
         b.wakeUp();
         b.position.set(rand(-sx, sx), rand(DROP_MIN, DROP_MAX), rand(-sz, sz));
         b.quaternion.setFromEuler(rand(0, Math.PI * 2), rand(0, Math.PI * 2), rand(0, Math.PI * 2));
         b.velocity.set(rand(-4, 4), rand(-4, -1), rand(-4, 4));
-        b.angularVelocity.set(rand(-24, 24), rand(-24, 24), rand(-24, 24));
+        b.angularVelocity.set(spin(), spin(), spin());
       }
     };
 
