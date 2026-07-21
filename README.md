@@ -23,6 +23,13 @@ ladder/LadderGame.tsx → 사다리 게임 본체 ("use client")
 | 게임 | 경로 | 설명 |
 |------|------|------|
 | 🪜 사다리 게임 | `/game/ladder` | 최대 10명 참가, 당첨 인원 자유 설정 |
+| 🎡 빅휠 | `/game/wheel` | 화려한 네온 룰렛, 항목 자유 편집(2~12) |
+| 🎲 주사위 던지기 | `/game/dice` | 3D 주사위 물리 굴림(1~6개), 흔들기 센서 |
+| 🪵 윷놀이 | `/game/yut` | 윷가락 4개 물리, 도·개·걸·윷·모·빽도 판정 |
+
+### 공용 유틸
+- `useShake.ts` — 흔들기(DeviceMotion) 감지 훅 (iOS 권한 처리 포함)
+- `Confetti.tsx` / `confetti.module.css` — 결과 연출용 컨페티
 
 ## 새 게임 추가 방법
 

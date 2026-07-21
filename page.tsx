@@ -32,6 +32,30 @@ const GAMES: GameItem[] = [
     badge: "PLAY",
     ready: true,
   },
+  {
+    href: "/game/wheel",
+    emoji: "🎡",
+    title: "빅휠",
+    desc: "화려한 네온 룰렛! 항목을 넣고 돌려서 운명의 하나를 뽑아요.",
+    badge: "PLAY",
+    ready: true,
+  },
+  {
+    href: "/game/dice",
+    emoji: "🎲",
+    title: "주사위 던지기",
+    desc: "3D 주사위를 화면 안에서 굴려요. 개수 선택, 폰 흔들기 지원!",
+    badge: "PLAY",
+    ready: true,
+  },
+  {
+    href: "/game/yut",
+    emoji: "🪵",
+    title: "윷놀이",
+    desc: "윷가락 4개를 던져 도·개·걸·윷·모·빽도! 흔들거나 버튼으로.",
+    badge: "PLAY",
+    ready: true,
+  },
 ];
 
 export default function GameHubPage() {

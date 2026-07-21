@@ -1,0 +1,30 @@
+.layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 40;
+}
+.piece {
+  position: absolute;
+  top: -24px;
+  display: block;
+  opacity: 0;
+  animation-name: fall;
+  animation-timing-function: ease-in;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+@keyframes fall {
+  0% {
+    opacity: 1;
+    transform: translate(0, -10vh) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(var(--drift), 110vh) rotate(calc(var(--spin) * 4));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .piece { display: none; }
+}

@@ -1,0 +1,227 @@
+/* =========================================================
+   윷놀이 — 윷가락 4개가 마당 안에서 굴러다니다(물리) 멈추면
+   평평/둥근 면으로 도·개·걸·윷·모·빽도 판정. 흔들기/버튼으로 던진다.
+   ========================================================= */
+
+.arena {
+  position: relative;
+  width: 100%;
+  height: min(50vh, 380px);
+  border-radius: 20px;
+  overflow: hidden;
+  perspective: 900px;
+  background:
+    radial-gradient(120% 100% at 50% -10%, #3a5a3f 0%, #24422b 55%, #17301d 100%);
+  box-shadow:
+    inset 0 2px 20px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 2px rgba(255, 214, 140, 0.16);
+  touch-action: none;
+}
+.arena::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 50% 45%, rgba(255, 240, 200, 0.1), transparent 60%);
+}
+
+.stickSlot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--sw, 30px);
+  height: var(--sl, 116px);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.stick {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.stickFace {
+  position: absolute;
+  inset: 0;
+  border-radius: 40% / 12%;
+  backface-visibility: hidden;
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.6);
+}
+/* 평평한 면 (밝은 나무) */
+.flatFace {
+  background:
+    linear-gradient(100deg, #f6dcae 0%, #e9c184 50%, #d9a95f 100%);
+  transform: translateZ(6px);
+  overflow: hidden;
+}
+.flatFace::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  bottom: 8%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: rgba(120, 80, 30, 0.35);
+  border-radius: 2px;
+}
+/* 둥근 면 (어두운 나무, 볼록하게) */
+.roundFace {
+  background:
+    radial-gradient(120% 60% at 50% 30%, #7a5230 0%, #5c3c22 60%, #422a17 100%);
+  transform: rotateY(180deg) translateZ(6px);
+}
+/* 빽도 표식 */
+.backdoMark {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: #d63031;
+  box-shadow: 0 0 0 3px rgba(214, 48, 49, 0.25);
+  z-index: 2;
+}
+
+/* 컨트롤 (주사위와 유사) */
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+}
+.throwBtn {
+  flex: 1;
+  min-width: 200px;
+  height: 56px;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #00b894, #1a5cff);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 12px 26px -10px rgba(26, 92, 255, 0.6);
+  transition: transform 0.12s ease;
+}
+.throwBtn:active:not(:disabled) { transform: scale(0.97); }
+.throwBtn:disabled { opacity: 0.65; cursor: default; }
+.sensorBtn {
+  height: 56px;
+  padding: 0 18px;
+  border-radius: 15px;
+  border: 1.5px solid #d7deea;
+  background: #fff;
+  color: #1a1a2e;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.sensorBtn:hover { border-color: #1a5cff; }
+.sensorOn { border-color: #00b894; background: #e8fbf5; color: #00997a; }
+
+.hintRow { text-align: center; font-size: 13px; color: #6b7a9a; margin: 14px 0 0; }
+
+/* 규칙 요약 */
+.rules {
+  margin-top: 16px;
+  background: #f7f9ff;
+  border: 1px solid #eef1f7;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.rulesTitle { font-size: 13px; font-weight: 800; color: #1a1a2e; margin: 0 0 8px; }
+.rulesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ruleChip {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #42506a;
+  background: #fff;
+  border: 1px solid #e8edf5;
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+.ruleChip b { color: #1a5cff; }
+
+/* 결과 오버레이 */
+.resultOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 16, 12, 0.76);
+  backdrop-filter: blur(4px);
+}
+.resultCard {
+  position: relative;
+  z-index: 45;
+  text-align: center;
+  padding: 30px 40px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #ffffff, #f0fff8);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.55);
+  max-width: 92vw;
+  animation: cardPop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes cardPop {
+  0% { transform: scale(0.6) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.resultEmoji { font-size: 54px; line-height: 1; margin-bottom: 4px; }
+.resultName {
+  font-size: clamp(44px, 13vw, 76px);
+  font-weight: 900;
+  line-height: 1;
+  margin: 0 0 6px;
+  background: linear-gradient(120deg, #00b894, #1a5cff, #6c5ce7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% auto;
+  animation: shine 2.4s linear infinite;
+}
+@keyframes shine { to { background-position: 200% center; } }
+.resultMove { font-size: 18px; font-weight: 800; color: #1a1a2e; margin: 0 0 4px; }
+.resultExtra {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ff6a00;
+  background: #fff1e6;
+  padding: 5px 14px;
+  border-radius: 999px;
+  margin: 6px 0 16px;
+}
+.resultSticks {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.miniStick {
+  width: 20px;
+  height: 46px;
+  border-radius: 40% / 12%;
+}
+.miniFlat { background: linear-gradient(100deg, #f6dcae, #d9a95f); position: relative; }
+.miniFlat::after {
+  content: "";
+  position: absolute; left: 50%; top: 10%; bottom: 10%; width: 2px;
+  transform: translateX(-50%); background: rgba(120,80,30,0.4);
+}
+.miniRound { background: radial-gradient(120% 60% at 50% 30%, #7a5230, #442a17); }
+.miniBackdo { box-shadow: 0 0 0 2px #d63031; }
