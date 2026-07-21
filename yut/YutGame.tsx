@@ -5,16 +5,18 @@ import styles from "../game.module.css";
 import yut from "./yut.module.css";
 import Confetti from "../Confetti";
 import { useShake } from "../useShake";
+import { stepBodies, type Body2D } from "../physics2d";
 
 /**
- * 윷놀이 — 윷가락 4개가 마당 안에서 물리로 굴러다니다 멈추면
- * 평평면(flat)/둥근면(round) 개수로 도·개·걸·윷·모 판정. 빽도 포함.
+ * 윷놀이 — 위에서 내려다보는 원형 마당. 윷가락 4개가 무중력 평면에서
+ * 서로/벽과 부딪히며 굴러다니다 마찰로 정지. 평평/둥근 면으로 판정.
  */
 
 const STICKS = 4;
-const BACKDO = 0; // 빽도(표식) 윷가락 인덱스
-const SW = 30; // 가락 폭
-const SL = 116; // 가락 길이
+const BACKDO = 0; // 빽도(×××) 윷가락 인덱스
+const SW = 34;
+const SL = 120;
+const RAD = 40; // 충돌 반경
 
 type YutOutcome = {
   name: string;
@@ -43,19 +45,10 @@ function evalYut(flat: boolean[]): YutOutcome {
   }
 }
 
-type Phys = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  ry: number;
-  rz: number;
-  rx: number;
-  avy: number;
-  avz: number;
-  avx: number;
-  scatter: number; // 안착 시 눕는 각도
-};
+interface StickBody extends Body2D {
+  flip: number; // 뒤집힘 각도(도): 0 = 평평 위, 180 = 둥근 위
+  aflip: number;
+}
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
@@ -66,41 +59,61 @@ export default function YutGame() {
   );
 
   const arenaRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stickRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const physRef = useRef<Phys[]>([]);
+  const physRef = useRef<StickBody[]>([]);
   const flatRef = useRef<boolean[]>([true, true, true, true]);
   const rafRef = useRef(0);
   const throwingRef = useRef(false);
+  const geomRef = useRef({ cx: 0, cy: 0, R: 0 });
+
+  const board = useCallback(() => {
+    const arena = arenaRef.current;
+    if (!arena) return { cx: 0, cy: 0, R: 0 };
+    const w = arena.clientWidth;
+    const h = arena.clientHeight;
+    const D = Math.min(w, h) - 16;
+    const R = D / 2;
+    const cx = w / 2;
+    const cy = h / 2;
+    const el = boardRef.current;
+    if (el) {
+      el.style.width = `${D}px`;
+      el.style.height = `${D}px`;
+      el.style.left = `${cx - R}px`;
+      el.style.top = `${cy - R}px`;
+    }
+    geomRef.current = { cx, cy, R };
+    return { cx, cy, R };
+  }, []);
 
   const writeStick = useCallback((i: number) => {
     const p = physRef.current[i];
     const slot = slotRefs.current[i];
     const stick = stickRefs.current[i];
     if (!p || !slot || !stick) return;
-    slot.style.transform = `translate(${p.x}px, ${p.y}px)`;
-    stick.style.transform = `rotateZ(${p.rz}deg) rotateY(${p.ry}deg) rotateX(${p.rx}deg)`;
+    slot.style.transform = `translate(${p.x - SW / 2}px, ${p.y - SL / 2}px) rotateZ(${p.angle}deg)`;
+    stick.style.transform = `rotateX(${p.flip}deg)`;
   }, []);
 
   const layout = useCallback(() => {
-    const arena = arenaRef.current;
-    if (!arena) return;
-    const w = arena.clientWidth;
-    const h = arena.clientHeight;
-    const gap = 20;
+    const { cx, cy, R } = board();
+    if (R === 0) return;
+    const gap = 12;
     const totalW = STICKS * SW + (STICKS - 1) * gap;
-    const startX = Math.max(8, (w - totalW) / 2);
-    const y = h - SL - 24;
+    const startX = cx - totalW / 2 + SW / 2;
     for (let i = 0; i < STICKS; i++) {
       const slot = slotRefs.current[i];
       const stick = stickRefs.current[i];
       if (!slot || !stick) continue;
+      const x = startX + i * (SW + gap);
       slot.style.transition = "transform 0.4s cubic-bezier(0.2,0.9,0.2,1)";
-      slot.style.transform = `translate(${startX + i * (SW + gap)}px, ${y}px)`;
+      slot.style.transform = `translate(${x - SW / 2}px, ${cy - SL / 2}px) rotateZ(${(i - 1.5) * 5}deg)`;
       stick.style.transition = "transform 0.5s cubic-bezier(0.2,0.9,0.2,1)";
-      stick.style.transform = `rotateZ(${(i - 1.5) * 5}deg) rotateY(0deg)`;
+      stick.style.transform = "rotateX(0deg)";
     }
-  }, []);
+  }, [board]);
 
   useEffect(() => {
     layout();
@@ -114,31 +127,26 @@ export default function YutGame() {
       const stick = stickRefs.current[i];
       if (!p || !slot || !stick) continue;
       const flat = flatRef.current[i];
-      // 현재 ry 에서 가장 가까운 flat(0)/round(180) 방향으로 스냅
-      const targetRy = flat
-        ? Math.round(p.ry / 360) * 360
-        : Math.round((p.ry - 180) / 360) * 360 + 180;
-      slot.style.transition = "transform 0.4s ease-out";
-      slot.style.transform = `translate(${p.x}px, ${p.y}px)`;
-      stick.style.transition = "transform 0.5s cubic-bezier(0.2,0.85,0.2,1)";
-      stick.style.transform = `rotateZ(${p.scatter}deg) rotateY(${targetRy}deg) rotateX(0deg)`;
+      const targetFlip = flat
+        ? Math.round(p.flip / 360) * 360
+        : Math.round((p.flip - 180) / 360) * 360 + 180;
+      slot.style.transition = "transform 0.35s ease-out";
+      slot.style.transform = `translate(${p.x - SW / 2}px, ${p.y - SL / 2}px) rotateZ(${p.angle}deg)`;
+      stick.style.transition = "transform 0.45s cubic-bezier(0.2,0.85,0.2,1)";
+      stick.style.transform = `rotateX(${targetFlip}deg)`;
     }
     window.setTimeout(() => {
       throwingRef.current = false;
       setThrowing(false);
       const flat = flatRef.current.slice();
       setResult({ flat, out: evalYut(flat) });
-    }, 560);
+    }, 520);
   }, []);
 
   const doThrow = useCallback(() => {
     if (throwingRef.current) return;
-    const arena = arenaRef.current;
-    if (!arena) return;
-    const w = arena.clientWidth;
-    const h = arena.clientHeight;
-    const maxX = Math.max(0, w - SW);
-    const maxY = Math.max(0, h - SL);
+    const { cx, cy, R } = board();
+    if (R === 0) return;
 
     setResult(null);
     throwingRef.current = true;
@@ -146,19 +154,21 @@ export default function YutGame() {
 
     flatRef.current = Array.from({ length: STICKS }, () => Math.random() < 0.5);
 
-    physRef.current = Array.from({ length: STICKS }, () => ({
-      x: rand(10, maxX - 10),
-      y: rand(8, 50),
-      vx: rand(-560, 560),
-      vy: rand(120, 320),
-      ry: rand(0, 360),
-      rz: rand(0, 360),
-      rx: rand(-30, 30),
-      avy: rand(-1400, 1400),
-      avz: rand(-500, 500),
-      avx: rand(-300, 300),
-      scatter: rand(-55, 55),
-    }));
+    physRef.current = Array.from({ length: STICKS }, () => {
+      const ang = rand(0, Math.PI * 2);
+      const rr = Math.sqrt(Math.random()) * Math.max(0, R - 60);
+      return {
+        x: cx + Math.cos(ang) * rr,
+        y: cy + Math.sin(ang) * rr,
+        vx: rand(-820, 820),
+        vy: rand(-820, 820),
+        angle: rand(0, 360),
+        angVel: rand(-520, 520),
+        r: RAD,
+        flip: rand(0, 360),
+        aflip: rand(-1500, 1500),
+      };
+    });
 
     for (let i = 0; i < STICKS; i++) {
       const slot = slotRefs.current[i];
@@ -168,43 +178,30 @@ export default function YutGame() {
       writeStick(i);
     }
 
-    const G = 2200;
-    const REST = 0.6;
+    const bounds = { kind: "circle" as const, cx, cy, R: R - 6 };
     const start = performance.now();
     let last = start;
 
     const tick = (now: number) => {
       const dt = Math.min(0.032, (now - last) / 1000);
       last = now;
-      const vDamp = Math.exp(-1.6 * dt);
-      const aDamp = Math.exp(-2.0 * dt);
-      let maxSpeed = 0;
+      const maxSpeed = stepBodies(physRef.current, dt, bounds, 0.7, 1.9, 2.2);
+      const fDamp = Math.exp(-2.1 * dt);
       for (let i = 0; i < STICKS; i++) {
         const p = physRef.current[i];
-        p.vy += G * dt;
-        p.vx *= vDamp;
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        if (p.x < 0) { p.x = 0; p.vx = -p.vx * REST; }
-        else if (p.x > maxX) { p.x = maxX; p.vx = -p.vx * REST; }
-        if (p.y < 0) { p.y = 0; p.vy = -p.vy * REST; }
-        else if (p.y > maxY) { p.y = maxY; p.vy = -p.vy * REST; p.vx *= 0.85; }
-        p.avy *= aDamp; p.avz *= aDamp; p.avx *= aDamp;
-        p.ry += p.avy * dt; p.rz += p.avz * dt; p.rx += p.avx * dt;
+        p.aflip *= fDamp;
+        p.flip += p.aflip * dt;
         writeStick(i);
-        const speed = Math.abs(p.vx) + Math.abs(p.vy);
-        if (speed > maxSpeed) maxSpeed = speed;
       }
       const elapsed = now - start;
-      const onFloor = physRef.current.every((p) => p.y >= maxY - 2);
-      if ((elapsed > 1100 && maxSpeed < 60 && onFloor) || elapsed > 2800) {
+      if ((elapsed > 550 && maxSpeed < 40) || elapsed > 3200) {
         settle();
         return;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
-  }, [writeStick, settle]);
+  }, [board, writeStick, settle]);
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
@@ -214,7 +211,12 @@ export default function YutGame() {
 
   return (
     <div className={styles.panel}>
-      <div className={yut.arena} ref={arenaRef} style={{ ["--sw" as string]: `${SW}px`, ["--sl" as string]: `${SL}px` }}>
+      <div
+        className={yut.arena}
+        ref={arenaRef}
+        style={{ ["--sw" as string]: `${SW}px`, ["--sl" as string]: `${SL}px` }}
+      >
+        <div className={yut.board} ref={boardRef} />
         {Array.from({ length: STICKS }, (_, i) => (
           <div
             key={i}
@@ -230,7 +232,13 @@ export default function YutGame() {
               }}
             >
               <div className={`${yut.stickFace} ${yut.flatFace}`}>
-                {i === BACKDO && <span className={yut.backdoMark} />}
+                {i === BACKDO && (
+                  <div className={yut.backdoMarks}>
+                    <span>×</span>
+                    <span>×</span>
+                    <span>×</span>
+                  </div>
+                )}
               </div>
               <div className={`${yut.stickFace} ${yut.roundFace}`} />
             </div>
@@ -267,7 +275,7 @@ export default function YutGame() {
           <span className={yut.ruleChip}>🐑 <b>걸</b> 3개</span>
           <span className={yut.ruleChip}>🐮 <b>윷</b> 4개·한번더</span>
           <span className={yut.ruleChip}>🐴 <b>모</b> 0개·한번더</span>
-          <span className={yut.ruleChip}>🔙 <b>빽도</b> 표식만</span>
+          <span className={yut.ruleChip}>🔙 <b>빽도</b> ××× 가락만</span>
         </div>
       </div>
 
@@ -281,7 +289,7 @@ export default function YutGame() {
               {result.flat.map((f, i) => (
                 <span
                   key={i}
-                  className={`${yut.miniStick} ${f ? yut.miniFlat : yut.miniRound} ${i === BACKDO ? yut.miniBackdo : ""}`}
+                  className={`${yut.miniStick} ${f ? yut.miniFlat : yut.miniRound} ${i === BACKDO && f ? yut.miniBackdo : ""}`}
                 />
               ))}
             </div>
@@ -289,7 +297,15 @@ export default function YutGame() {
             <p className={yut.resultName}>{result.out.name}</p>
             <p className={yut.resultMove}>{result.out.desc}</p>
             {result.out.extra && <span className={yut.resultExtra}>🎉 한 번 더!</span>}
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 8 }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                justifyContent: "center",
+                flexWrap: "wrap",
+                marginTop: 8,
+              }}
+            >
               <button
                 className={styles.btnPrimary}
                 style={{ minWidth: 130 }}

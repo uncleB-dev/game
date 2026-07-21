@@ -6,10 +6,10 @@
 .arena {
   position: relative;
   width: 100%;
-  height: min(48vh, 360px);
+  height: min(52vh, 400px);
   border-radius: 20px;
   overflow: hidden;
-  perspective: 720px;
+  perspective: 1600px;
   background:
     radial-gradient(120% 100% at 50% -20%, #20305e 0%, #131a33 55%, #0d1226 100%);
   box-shadow:

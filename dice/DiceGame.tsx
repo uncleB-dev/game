@@ -5,9 +5,11 @@ import styles from "../game.module.css";
 import dice from "./dice.module.css";
 import Confetti from "../Confetti";
 import { useShake } from "../useShake";
+import { stepBodies, type Body2D } from "../physics2d";
 
 /**
- * 주사위 던지기 — CSS 3D 큐브가 자체 물리(중력/마찰/벽 반사)로 굴러다니고,
+ * 주사위 던지기 — 위에서 내려다보는(탑다운) 판에서 3D 큐브가 굴러다닌다.
+ * 중력 없음: 마찰로 자연 정지하고, 주사위끼리·벽과 부딪히면 튕긴다.
  * 멈추면 각 면이 결과값을 보이도록 회전을 스냅. 흔들기(센서)/버튼으로 굴린다.
  */
 
@@ -15,8 +17,8 @@ const MIN = 1;
 const MAX = 6;
 const DIE = 60;
 const H = DIE / 2;
+const R = 30; // 충돌 반경
 
-// 각 면(값)의 큐브 상 배치 회전 (뒤에 translateZ(H))
 const FACE_ROT: Record<number, string> = {
   1: "rotateY(0deg)",
   2: "rotateX(-90deg)",
@@ -25,7 +27,6 @@ const FACE_ROT: Record<number, string> = {
   5: "rotateX(90deg)",
   6: "rotateY(180deg)",
 };
-// 값 v 를 정면으로 보이게 하는 큐브 회전
 const SHOW_ROT: Record<number, string> = {
   1: "rotateX(0deg) rotateY(0deg)",
   2: "rotateX(90deg)",
@@ -34,7 +35,6 @@ const SHOW_ROT: Record<number, string> = {
   5: "rotateX(-90deg)",
   6: "rotateY(180deg)",
 };
-
 const PIP_MAP: Record<number, number[]> = {
   1: [4],
   2: [0, 8],
@@ -63,18 +63,15 @@ function Pips({
   );
 }
 
-type Phys = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
+// 3D 큐브 텀블 정보를 붙인 물리 바디
+interface DieBody extends Body2D {
   rx: number;
   ry: number;
   rz: number;
-  avx: number;
-  avy: number;
-  avz: number;
-};
+  arx: number;
+  ary: number;
+  arz: number;
+}
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
@@ -86,7 +83,7 @@ export default function DiceGame() {
   const arenaRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const cubeRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const physRef = useRef<Phys[]>([]);
+  const physRef = useRef<DieBody[]>([]);
   const valuesRef = useRef<number[]>([1, 2, 3, 4, 5, 6]);
   const rafRef = useRef(0);
   const rollingRef = useRef(false);
@@ -97,30 +94,31 @@ export default function DiceGame() {
     const slot = slotRefs.current[i];
     const cube = cubeRefs.current[i];
     if (!p || !slot || !cube) return;
-    slot.style.transform = `translate(${p.x}px, ${p.y}px)`;
+    slot.style.transform = `translate(${p.x - H}px, ${p.y - H}px)`;
     cube.style.transform = `rotateX(${p.rx}deg) rotateY(${p.ry}deg) rotateZ(${p.rz}deg)`;
   }, []);
 
-  // 대기 상태 배치 — 하단 중앙에 한 줄로 세우고 현재 값을 보여준다.
+  // 대기 상태 — 판 중앙에 한 줄로 세우고 현재 값을 보여준다.
   const layout = useCallback(() => {
     const arena = arenaRef.current;
     if (!arena) return;
     const w = arena.clientWidth;
     const h = arena.clientHeight;
     const c = countRef.current;
-    const gap = 14;
+    const gap = 16;
     const totalW = c * DIE + (c - 1) * gap;
-    const startX = Math.max(8, (w - totalW) / 2);
-    const y = h - DIE - 22;
+    const startX = Math.max(H + 6, (w - totalW) / 2 + H);
+    const cy = h / 2;
     for (let i = 0; i < c; i++) {
       const v = valuesRef.current[i] ?? 1;
       const slot = slotRefs.current[i];
       const cube = cubeRefs.current[i];
       if (!slot || !cube) continue;
+      const cx = startX + i * (DIE + gap);
       slot.style.transition = "transform 0.4s cubic-bezier(0.2,0.9,0.2,1)";
-      slot.style.transform = `translate(${startX + i * (DIE + gap)}px, ${y}px)`;
+      slot.style.transform = `translate(${cx - H}px, ${cy - H}px)`;
       cube.style.transition = "transform 0.5s cubic-bezier(0.2,0.9,0.2,1)";
-      cube.style.transform = `${SHOW_ROT[v]} rotateZ(${(i % 2 ? 6 : -6)}deg)`;
+      cube.style.transform = `${SHOW_ROT[v]} rotateZ(${i % 2 ? 6 : -6}deg)`;
     }
   }, []);
 
@@ -138,16 +136,16 @@ export default function DiceGame() {
       const cube = cubeRefs.current[i];
       const v = valuesRef.current[i];
       if (!p || !slot || !cube) continue;
-      slot.style.transition = "transform 0.35s ease-out";
-      slot.style.transform = `translate(${p.x}px, ${p.y}px)`;
-      cube.style.transition = "transform 0.5s cubic-bezier(0.2,0.85,0.2,1)";
-      cube.style.transform = `${SHOW_ROT[v]} rotateZ(${(i % 2 ? 8 : -8)}deg)`;
+      slot.style.transition = "transform 0.3s ease-out";
+      slot.style.transform = `translate(${p.x - H}px, ${p.y - H}px)`;
+      cube.style.transition = "transform 0.45s cubic-bezier(0.2,0.85,0.2,1)";
+      cube.style.transform = `${SHOW_ROT[v]} rotateZ(${i % 2 ? 8 : -8}deg)`;
     }
     window.setTimeout(() => {
       rollingRef.current = false;
       setRolling(false);
       setResult(valuesRef.current.slice(0, c));
-    }, 520);
+    }, 480);
   }, []);
 
   const roll = useCallback(() => {
@@ -157,24 +155,26 @@ export default function DiceGame() {
     const w = arena.clientWidth;
     const h = arena.clientHeight;
     const c = countRef.current;
-    const maxX = Math.max(0, w - DIE);
-    const maxY = Math.max(0, h - DIE);
 
     setResult(null);
     rollingRef.current = true;
     setRolling(true);
 
+    // 판 전체에 흩뿌리고 무작위 방향 속도 부여 (중력 없음)
     physRef.current = Array.from({ length: c }, () => ({
-      x: rand(10, maxX - 10),
-      y: rand(8, 40),
-      vx: rand(-620, 620),
-      vy: rand(120, 340),
+      x: rand(R + 4, w - R - 4),
+      y: rand(R + 4, h - R - 4),
+      vx: rand(-780, 780),
+      vy: rand(-780, 780),
+      angle: 0,
+      angVel: 0,
+      r: R,
       rx: rand(0, 360),
       ry: rand(0, 360),
       rz: rand(0, 360),
-      avx: rand(-1100, 1100),
-      avy: rand(-1100, 1100),
-      avz: rand(-700, 700),
+      arx: rand(-1200, 1200),
+      ary: rand(-1200, 1200),
+      arz: rand(-800, 800),
     }));
     valuesRef.current = Array.from(
       { length: c },
@@ -189,44 +189,27 @@ export default function DiceGame() {
       writeDie(i);
     }
 
-    const G = 2200; // 중력 (px/s^2)
-    const REST = 0.62; // 반발계수
+    const bounds = { kind: "rect" as const, w, h };
     const start = performance.now();
     let last = start;
 
     const tick = (now: number) => {
       const dt = Math.min(0.032, (now - last) / 1000);
       last = now;
-      const vDamp = Math.exp(-1.6 * dt);
+      const maxSpeed = stepBodies(physRef.current, dt, bounds, 0.82, 1.7, 2.0);
       const aDamp = Math.exp(-1.9 * dt);
-      let maxSpeed = 0;
-
       for (let i = 0; i < c; i++) {
         const p = physRef.current[i];
-        p.vy += G * dt;
-        p.vx *= vDamp;
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        // 벽 반사
-        if (p.x < 0) { p.x = 0; p.vx = -p.vx * REST; }
-        else if (p.x > maxX) { p.x = maxX; p.vx = -p.vx * REST; }
-        if (p.y < 0) { p.y = 0; p.vy = -p.vy * REST; }
-        else if (p.y > maxY) {
-          p.y = maxY;
-          p.vy = -p.vy * REST;
-          p.vx *= 0.86; // 바닥 마찰
-        }
-        // 회전
-        p.avx *= aDamp; p.avy *= aDamp; p.avz *= aDamp;
-        p.rx += p.avx * dt; p.ry += p.avy * dt; p.rz += p.avz * dt;
+        p.arx *= aDamp;
+        p.ary *= aDamp;
+        p.arz *= aDamp;
+        p.rx += p.arx * dt;
+        p.ry += p.ary * dt;
+        p.rz += p.arz * dt;
         writeDie(i);
-        const speed = Math.abs(p.vx) + Math.abs(p.vy);
-        if (speed > maxSpeed) maxSpeed = speed;
       }
-
       const elapsed = now - start;
-      const restingOnFloor = physRef.current.every((p) => p.y >= maxY - 2);
-      if ((elapsed > 1100 && maxSpeed < 60 && restingOnFloor) || elapsed > 2800) {
+      if ((elapsed > 550 && maxSpeed < 46) || elapsed > 3200) {
         settle();
         return;
       }
@@ -251,7 +234,10 @@ export default function DiceGame() {
 
   return (
     <div className={styles.panel}>
-      <div className={styles.actions} style={{ marginTop: 0, marginBottom: 18, justifyContent: "center" }}>
+      <div
+        className={styles.actions}
+        style={{ marginTop: 0, marginBottom: 18, justifyContent: "center" }}
+      >
         <div className={styles.stepper}>
           <button
             className={styles.stepBtn}
@@ -276,7 +262,11 @@ export default function DiceGame() {
         </div>
       </div>
 
-      <div className={dice.arena} ref={arenaRef} style={{ ["--die" as string]: `${DIE}px` }}>
+      <div
+        className={dice.arena}
+        ref={arenaRef}
+        style={{ ["--die" as string]: `${DIE}px` }}
+      >
         {Array.from({ length: count }, (_, i) => (
           <div
             key={i}
@@ -332,7 +322,11 @@ export default function DiceGame() {
           <div className={dice.resultCard} onClick={(e) => e.stopPropagation()}>
             <div className={dice.resultDice}>
               {result.map((v, i) => (
-                <div key={i} className={dice.miniDie} style={{ animationDelay: `${i * 0.06}s` }}>
+                <div
+                  key={i}
+                  className={dice.miniDie}
+                  style={{ animationDelay: `${i * 0.06}s` }}
+                >
                   <Pips v={v} pipClass={dice.miniPip} emptyClass={dice.pipEmpty} />
                 </div>
               ))}
@@ -341,7 +335,14 @@ export default function DiceGame() {
               합계 {count > 1 ? `(${result.join(" + ")})` : ""}
             </p>
             <p className={dice.resultSum}>{sum}</p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
+            >
               <button
                 className={styles.btnPrimary}
                 style={{ minWidth: 130 }}
