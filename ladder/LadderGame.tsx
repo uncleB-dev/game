@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../game.module.css";
 
 /**
@@ -36,6 +35,69 @@ const ROW_GAP = 34;
 const PAD_X = 56;
 const TOP_Y = 34; // 세로줄 시작 y (참가자 라벨은 이 위)
 const LABEL_H = 30; // 상/하단 라벨 칸 높이
+
+// ── 트레이스 애니메이션 속도 (초당 진행률, 0~1) ──
+// 기본은 박진감 있게 천천히, 참가자를 "누르고 있는 동안"은 빠르게.
+const SLOW_SPEED = 1 / 4.4; // 기본: 약 4.4초에 완주 (기존보다 4배 느림)
+const FAST_SPEED = 1 / 1.1; // 꾹 누름: 약 1.1초에 완주 (기존 속도)
+
+/**
+ * 사다리 경로를 stroke-dashoffset 으로 "그려지는" 애니메이션.
+ * requestAnimationFrame 으로 매 프레임 진행률을 더하므로, 진행 중에도
+ * speedRef.current 값을 바꾸면 즉시 속도가 반영된다(꾹 누르면 빨리감기).
+ */
+function TracePath({
+  d,
+  color,
+  speedRef,
+  onDone,
+}: {
+  d: string;
+  color: string;
+  speedRef: React.RefObject<number>;
+  onDone: () => void;
+}) {
+  // pathLength={1} 정규화 → 길이 측정 없이 dasharray/offset을 0~1 로 다룬다.
+  const [prog, setProg] = useState(0);
+  const doneRef = useRef(onDone);
+  useEffect(() => {
+    doneRef.current = onDone;
+  });
+
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    let p = 0;
+    const tick = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      p = Math.min(1, p + dt * (speedRef.current ?? SLOW_SPEED));
+      setProg(p);
+      if (p < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        doneRef.current();
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // d 가 바뀌면(새 판) 새로 그린다
+  }, [d, speedRef]);
+
+  return (
+    <path
+      d={d}
+      fill="none"
+      stroke={color}
+      strokeWidth={5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      pathLength={1}
+      strokeDasharray={1}
+      strokeDashoffset={1 - prog}
+    />
+  );
+}
 
 type Point = { x: number; y: number };
 
@@ -129,6 +191,15 @@ export default function LadderGame() {
   const [game, setGame] = useState<Game | null>(null);
   const [revealed, setRevealed] = useState<number[]>([]); // 공개된 시작 col (클릭 순)
   const [settled, setSettled] = useState<number[]>([]); // 애니메이션 끝난 시작 col
+
+  // 트레이스 속도(초당 진행률) — 참가자를 누르고 있는 동안 FAST, 평소 SLOW.
+  const speedRef = useRef<number>(SLOW_SPEED);
+  const speedUp = () => {
+    speedRef.current = FAST_SPEED;
+  };
+  const speedDown = () => {
+    speedRef.current = SLOW_SPEED;
+  };
 
   const setName = (i: number, v: string) =>
     setNames((prev) => prev.map((n, idx) => (idx === i ? v : n)));
@@ -305,6 +376,30 @@ export default function LadderGame() {
           </div>
         )}
 
+        <hr className={styles.divider} />
+
+        <div className={styles.howto}>
+          <p className={styles.howtoTitle}>📖 게임 방법</p>
+          <ol className={styles.howtoList}>
+            <li>참가 인원(2~10명)과 참가자 이름을 정해요.</li>
+            <li>
+              결과를 설정해요 — <b>당첨/꽝</b> 모드는 당첨 인원만 정하면 위치가
+              무작위로 섞이고, <b>직접 입력</b> 모드는 칸마다 원하는 결과를 적어요.
+            </li>
+            <li>
+              <b>사다리 타기 시작</b>을 누르면 무작위 사다리가 만들어져요.
+            </li>
+            <li>
+              위쪽 <b>참가자를 누르면</b> 사다리를 따라 내려가 도착한 결과가
+              공개돼요.
+            </li>
+            <li>
+              💡 참가자를 <b>꾹 누르고 있으면</b> 빠르게, 그냥 누르면 천천히
+              내려가요. <b>전체 결과 공개</b>로 한 번에 볼 수도 있어요.
+            </li>
+          </ol>
+        </div>
+
         <div className={styles.actions}>
           <button className={styles.btnPrimary} onClick={start}>
             사다리 타기 시작 🪜
@@ -363,18 +458,12 @@ export default function LadderGame() {
 
           {/* 공개된 경로 (애니메이션) */}
           {revealed.map((s) => (
-            <motion.path
+            <TracePath
               key={`path-${s}-${game.paths[s].d.length}`}
               d={game.paths[s].d}
-              fill="none"
-              stroke={COLORS[s]}
-              strokeWidth={5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 1.1, ease: "easeInOut" }}
-              onAnimationComplete={() =>
+              color={COLORS[s]}
+              speedRef={speedRef}
+              onDone={() =>
                 setSettled((prev) =>
                   prev.includes(s) ? prev : [...prev, s],
                 )
@@ -382,14 +471,20 @@ export default function LadderGame() {
             />
           ))}
 
-          {/* 상단: 참가자 칩 (클릭 가능) */}
+          {/* 상단: 참가자 칩 — 누르면 공개, 누르고 있는 동안은 빠르게 */}
           {game.names.map((name, i) => {
             const on = revealed.includes(i);
             return (
               <g
                 key={`top-${i}`}
                 className={styles.topCell}
-                onClick={() => reveal(i)}
+                onPointerDown={() => {
+                  speedUp();
+                  reveal(i);
+                }}
+                onPointerUp={speedDown}
+                onPointerLeave={speedDown}
+                onPointerCancel={speedDown}
               >
                 <rect
                   className={styles.chipRect}
@@ -455,6 +550,10 @@ export default function LadderGame() {
       {revealed.length === 0 && (
         <p className={styles.hint}>
           위쪽 참가자를 눌러 결과를 확인하세요 👆
+          <br />
+          <span className={styles.hintSub}>
+            💡 참가자를 <b>꾹 누르고 있으면</b> 사다리를 빠르게 내려가요!
+          </span>
         </p>
       )}
 
