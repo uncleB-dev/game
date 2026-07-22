@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./game.module.css";
+import { GamesHubJsonLd } from "./seo";
 
 export const metadata: Metadata = {
   title: "UncleB Games — 미니게임 모음",
   description:
     "엉클비스튜디오가 만든 가볍고 재밌는 미니게임 모음. 사다리 게임부터 시작해 하나씩 늘려갑니다.",
+  keywords: ["미니게임","무료 게임","온라인 게임","브라우저 게임","사다리타기","룰렛","주사위","윷놀이","스피드 터치","로또 번호 생성기","엉클비 게임즈","UncleB Games"],
   openGraph: {
     title: "UncleB Games — 미니게임 모음",
     description: "가볍고 재밌는 미니게임 모음. 친구들과 함께 즐겨보세요.",
     url: "https://unclebstudio.com/game",
+    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
   },
   alternates: { canonical: "/game" },
 };
@@ -77,6 +80,13 @@ const GAMES: GameItem[] = [
 export default function GameHubPage() {
   return (
     <div className={styles.page}>
+      <GamesHubJsonLd
+        games={GAMES.filter((g) => g.ready).map((g) => ({
+          name: g.title,
+          path: g.href,
+          description: g.desc,
+        }))}
+      />
       <div className={styles.shell}>
         <div className={styles.topbar}>
           <Link href="/" className={styles.brand}>

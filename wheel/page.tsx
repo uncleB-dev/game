@@ -2,15 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import BigWheel from "./BigWheel";
 import styles from "../game.module.css";
+import { GameJsonLd } from "../seo";
 
 export const metadata: Metadata = {
   title: "빅휠 (행운의 룰렛) | UncleB Games",
   description:
     "화려한 네온 룰렛! 항목을 자유롭게 넣고 돌려서 하나를 뽑아요. 벌칙 정하기, 메뉴 정하기, 추첨까지.",
+  keywords: ["룰렛 돌리기", "행운의 룰렛", "돌림판", "랜덤 뽑기", "점심 메뉴 룰렛", "원판 돌리기", "무료 미니게임"],
   openGraph: {
     title: "빅휠 (행운의 룰렛) | UncleB Games",
     description: "화려한 네온 룰렛으로 하나를 뽑아보세요.",
     url: "https://unclebstudio.com/game/wheel",
+    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
   },
   alternates: { canonical: "/game/wheel" },
 };
@@ -18,6 +21,12 @@ export const metadata: Metadata = {
 export default function WheelPage() {
   return (
     <div className={styles.page}>
+      <GameJsonLd
+        name="빅휠 (행운의 룰렛)"
+        description="항목을 넣고 돌리는 화려한 네온 룰렛. 메뉴 정하기·벌칙·추첨에 활용."
+        path="/game/wheel"
+        genre="파티 게임"
+      />
       <div className={styles.shell}>
         <div className={styles.topbar}>
           <Link href="/" className={styles.brand}>
