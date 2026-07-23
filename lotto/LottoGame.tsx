@@ -244,8 +244,11 @@ export default function LottoGame() {
       from: THREE.Vector3;
       mid: THREE.Vector3;
       to: THREE.Vector3;
+      fromQ: THREE.Quaternion;
+      toQ: THREE.Quaternion;
       t: number;
     } | null = null;
+    const lookHelper = new THREE.Object3D();
 
     const traySlot = (i: number) => {
       const gap = Math.min(1.05, (2 * R + 1.2) / Math.max(pickTarget, 1));
@@ -262,11 +265,17 @@ export default function LottoGame() {
       active[idx] = false;
       world.removeBody(bodies[idx]);
       const from = meshes[idx].position.clone();
+      const to = traySlot(pickedCount);
+      // 트레이에서 번호(텍스처 u=0.25, 로컬 +z)가 카메라를 정확히 향하도록 목표 회전 계산
+      lookHelper.position.copy(to);
+      lookHelper.lookAt(camera.position);
       pickAnim = {
         idx,
         from,
         mid: new THREE.Vector3(SPHERE_C.x, SPHERE_C.y - R + 0.3, 1.0),
-        to: traySlot(pickedCount),
+        to,
+        fromQ: meshes[idx].quaternion.clone(),
+        toQ: lookHelper.quaternion.clone(),
         t: 0,
       };
       const mat = meshes[idx].material as THREE.MeshStandardMaterial;
@@ -383,11 +392,15 @@ export default function LottoGame() {
         const a1 = tmpV.copy(pickAnim.from).lerp(pickAnim.mid, e);
         const a2 = pickAnim.mid.clone().lerp(pickAnim.to, e);
         m.position.copy(a1.lerp(a2, e));
-        m.rotation.z += dt * 6;
+        // 날아가며 숫자면이 카메라를 향하도록 회전 보간
+        m.quaternion.slerpQuaternions(pickAnim.fromQ, pickAnim.toQ, e);
         const s = 1 + 0.2 * e;
         m.scale.set(s, s, s);
         if (t >= 1) {
           m.position.copy(pickAnim.to);
+          m.quaternion.copy(pickAnim.toQ);
+          // 선택 하이라이트 발광 해제 — 트레이에선 원래 볼 색으로
+          (m.material as THREE.MeshStandardMaterial).emissiveIntensity = 0;
           const num = pickAnim.idx + 1;
           pickedCount++;
           const done = pickedCount >= pickTarget;
