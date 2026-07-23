@@ -75,6 +75,14 @@ const GAMES: GameItem[] = [
     badge: "PLAY",
     ready: true,
   },
+  {
+    href: "/game/pinball",
+    emoji: "🔮",
+    title: "복불복 핀볼",
+    desc: "이름을 넣고 구슬을 굴려 당첨자 추첨! 물리 핀볼 레이스, 6가지 맵.",
+    badge: "PLAY",
+    ready: true,
+  },
 ];
 
 export default function GameHubPage() {

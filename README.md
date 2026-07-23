@@ -28,6 +28,7 @@ ladder/LadderGame.tsx → 사다리 게임 본체 ("use client")
 | 🪵 윷놀이 | `/game/yut` | 윷가락 4개 물리, 도·개·걸·윷·모·빽도 판정 |
 | ⚡ 스피드 터치 | `/game/touch` | 1~4명 화면 분할 동시 터치 대결 (10~60초) |
 | 🎱 로또 추첨기 | `/game/lotto` | 에어젯 물리로 볼 섞고 추첨 (번호·개수 설정) |
+| 🔮 복불복 핀볼 | `/game/pinball` | 구슬 물리 레이스 당첨자 추첨, 6맵 (원작 lazygyu/roulette MIT) |
 
 ### 공용 유틸
 - `useShake.ts` — 흔들기(DeviceMotion) 감지 훅 (iOS 권한 처리 포함)
