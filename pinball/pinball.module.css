@@ -31,22 +31,6 @@
   height: auto;
 }
 .arenaFull .arena { border-radius: 0; }
-.fsBtn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 5;
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
-  border: none;
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
-  font-size: 19px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-}
-.fsBtn:active { transform: scale(0.94); }
 .fsControls {
   position: absolute;
   left: 0;
@@ -105,12 +89,12 @@
 .namesInput {
   width: 100%;
   min-height: 64px;
-  border: 1px solid #e8edf5;
+  border: 1px solid var(--gm-line);
   border-radius: 12px;
   padding: 12px 14px;
   font-size: 15px;
-  color: #1a1a2e;
-  background: #fbfcff;
+  color: var(--gm-text);
+  background: rgba(0,0,0,0.32);
   outline: none;
   resize: vertical;
   font-family: inherit;
@@ -118,9 +102,9 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .namesInput:focus {
-  border-color: #1a5cff;
+  border-color: var(--gm-neon);
   box-shadow: 0 0 0 3px rgba(26, 92, 250, 0.12);
-  background: #fff;
+  background: rgba(255,255,255,0.06);
 }
 .mapRow {
   display: flex;
@@ -130,19 +114,19 @@
 .mapChip {
   padding: 9px 16px;
   border-radius: 999px;
-  border: 1.5px solid #e8edf5;
-  background: #fbfcff;
-  color: #42506a;
+  border: 1.5px solid var(--gm-line);
+  background: rgba(0,0,0,0.32);
+  color: #9aa6c2;
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s ease;
 }
-.mapChip:hover:not(:disabled) { border-color: #1a5cff; }
+.mapChip:hover:not(:disabled) { border-color: var(--gm-neon); }
 .mapChipOn {
-  background: #1a5cff;
-  border-color: #1a5cff;
+  background: var(--gm-neon);
+  border-color: var(--gm-neon);
   color: #fff;
   box-shadow: 0 6px 16px -6px rgba(26, 92, 250, 0.6);
 }
@@ -156,13 +140,13 @@
   margin-top: 8px;
   width: 90px;
   height: 40px;
-  border: 1px solid #e8edf5;
+  border: 1px solid var(--gm-line);
   border-radius: 10px;
   padding: 0 12px;
   font-size: 15px;
   font-weight: 800;
-  color: #1a1a2e;
-  background: #fbfcff;
+  color: var(--gm-text);
+  background: rgba(0,0,0,0.32);
   outline: none;
   font-family: inherit;
 }
@@ -170,9 +154,9 @@
   height: 44px;
   padding: 0 16px;
   border-radius: 12px;
-  border: 1.5px solid #e8edf5;
-  background: #fbfcff;
-  color: #6b7a9a;
+  border: 1.5px solid var(--gm-line);
+  background: rgba(0,0,0,0.32);
+  color: var(--gm-dim);
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
@@ -180,8 +164,8 @@
   transition: all 0.15s ease;
 }
 .skillOn {
-  border-color: #ff6a00;
-  background: #fff1e6;
+  border-color: var(--gm-magenta);
+  background: color-mix(in srgb, var(--gm-magenta) 14%, transparent);
   color: #d35400;
 }
 .startBtn {
@@ -190,7 +174,7 @@
   height: 56px;
   border: none;
   border-radius: 15px;
-  background: linear-gradient(135deg, #6c5ce7, #1a5cff);
+  background: linear-gradient(135deg, #6c5ce7, var(--gm-neon));
   color: #fff;
   font-size: 18px;
   font-weight: 900;
@@ -204,7 +188,7 @@
 .hintRow {
   text-align: center;
   font-size: 13px;
-  color: #6b7a9a;
+  color: var(--gm-dim);
   margin: 14px 0 0;
 }
 
@@ -226,7 +210,7 @@
   text-align: center;
   padding: 32px 42px;
   border-radius: 24px;
-  background: linear-gradient(160deg, #ffffff, #f0eeff);
+  background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(168,85,247,0.10));
   box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.55);
   max-width: 92vw;
   animation: cardPop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
@@ -239,7 +223,7 @@
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.15em;
-  color: #ff6a00;
+  color: var(--gm-magenta);
   margin: 0 0 8px;
 }
 .resultName {
@@ -248,7 +232,7 @@
   line-height: 1.15;
   margin: 0 0 6px;
   word-break: break-all;
-  background: linear-gradient(120deg, #6c5ce7, #1a5cff, #ff3d71);
+  background: linear-gradient(120deg, #6c5ce7, var(--gm-neon), #ff3d71);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -259,7 +243,7 @@
 .resultSub {
   font-size: 15px;
   font-weight: 700;
-  color: #6b7a9a;
+  color: var(--gm-dim);
   margin: 0 0 20px;
 }
 .resultBtns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }

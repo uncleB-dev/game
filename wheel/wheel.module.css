@@ -89,7 +89,7 @@
   font-weight: 900;
   font-size: clamp(13px, 3.4vw, 17px);
   font-family: inherit;
-  background: radial-gradient(circle at 38% 32%, #ffd36e, #ff6a00 55%, #d63031);
+  background: radial-gradient(circle at 38% 32%, #ffd36e, var(--gm-magenta) 55%, #d63031);
   box-shadow:
     0 0 0 5px #fff,
     0 0 0 9px #ffb648,
@@ -157,14 +157,14 @@
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.15em;
-  color: #ff6a00;
+  color: var(--gm-magenta);
   margin: 0 0 6px;
 }
 .resultValue {
   font-size: clamp(30px, 8vw, 52px);
   font-weight: 900;
   margin: 0 0 20px;
-  background: linear-gradient(120deg, #1a5cff, #6c5ce7, #ff3d71);
+  background: linear-gradient(120deg, var(--gm-neon), #6c5ce7, #ff3d71);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -186,9 +186,9 @@
 .removeBtn {
   width: 40px;
   height: 44px;
-  border: 1px solid #e8edf5;
+  border: 1px solid var(--gm-line);
   border-radius: 10px;
-  background: #fff;
+  background: rgba(255,255,255,0.06);
   color: #d63031;
   font-size: 20px;
   cursor: pointer;
@@ -201,12 +201,29 @@
   height: 46px;
   border: 1.5px dashed #c7d0e0;
   border-radius: 12px;
-  background: #fbfcff;
-  color: #1a5cff;
+  background: rgba(0,0,0,0.32);
+  color: var(--gm-neon);
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
   margin-top: 4px;
 }
-.addBtn:hover { background: #f2f6ff; border-color: #1a5cff; }
+.addBtn:hover { background: #f2f6ff; border-color: var(--gm-neon); }
 .addBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── 전체화면 ──────────────────────────────────────────────
+   휠은 크기가 곧 몰입감이라 화면을 꽉 채운다. 컨트롤(항목 편집)은
+   전체화면에서 숨기고 휠과 돌리기 버튼만 남긴다. */
+.stageFull {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgba(255, 45, 149, 0.16), transparent 70%),
+    #07070f;
+}
+.stageFull .wheelWrap {
+  width: min(94vw, 94vh, 720px);
+}

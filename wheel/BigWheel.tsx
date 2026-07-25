@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import styles from "../game.module.css";
 import wheel from "./wheel.module.css";
 import Confetti from "../Confetti";
 import { trackPlay } from "../track";
+import FullscreenToggle from "../FullscreenToggle";
 
 /**
  * 빅휠 (행운의 룰렛) — 항목을 정하고 돌려서 하나를 뽑는다.
@@ -42,6 +43,7 @@ export default function BigWheel() {
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const n = entries.length;
   const seg = 360 / n;
@@ -54,6 +56,16 @@ export default function BigWheel() {
     setEntries((p) => (p.length >= MAX ? p : [...p, `항목 ${p.length + 1}`]));
   const removeEntry = (i: number) =>
     setEntries((p) => (p.length <= MIN ? p : p.filter((_, idx) => idx !== i)));
+
+  // 전체화면 동안 뒤 배경이 스크롤되면 몰입이 깨진다
+  useEffect(() => {
+    document.body.style.overflow = expanded ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [expanded]);
+
+  const toggleFs = () => setExpanded((v) => !v);
 
   const spin = () => {
     trackPlay("wheel");
@@ -95,7 +107,12 @@ export default function BigWheel() {
 
   return (
     <div className={styles.panel}>
-      <div className={wheel.stage}>
+      <div className={`${wheel.stage} ${expanded ? wheel.stageFull : ""}`}>
+        <FullscreenToggle
+          expanded={expanded}
+          onToggle={toggleFs}
+          hint={<><b>전체화면</b>으로 돌리면 훨씬 시원해요!</>}
+        />
         <div className={wheel.wheelWrap}>
           <div className={wheel.pointer} />
           <div className={`${wheel.ring} ${spinning ? wheel.spinningBulbs : ""}`}>

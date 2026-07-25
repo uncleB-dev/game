@@ -22,7 +22,10 @@ export const metadata: Metadata = {
 
 export default function PinballPage() {
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{ ["--gm-neon" as string]: "#FF2D95" } as React.CSSProperties}
+    >
       <TrackView slug="pinball" />
       <GameJsonLd
         name="복불복 핀볼"

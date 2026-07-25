@@ -8,6 +8,7 @@ import { Roulette } from "./engine/roulette";
 import engineOptions from "./engine/options";
 import { stages } from "./engine/data/maps";
 import { trackPlay } from "../track";
+import FullscreenToggle from "../FullscreenToggle";
 
 /**
  * 복불복 핀볼 — 구슬 물리 레이스로 당첨자를 뽑는 게임.
@@ -165,13 +166,11 @@ export default function PinballGame() {
       {/* ── 아레나 ── */}
       <div className={`${pb.arenaWrap} ${expanded ? pb.arenaFull : ""}`}>
         <div className={pb.arena} ref={mountRef} />
-        <button
-          className={pb.fsBtn}
-          onClick={toggleFs}
-          aria-label={expanded ? "전체화면 닫기" : "전체화면"}
-        >
-          {expanded ? "✕" : "⛶"}
-        </button>
+        <FullscreenToggle
+          expanded={expanded}
+          onToggle={toggleFs}
+          hint={<><b>전체화면</b>으로 보면 구슬 레이스가 박진감 넘쳐요!</>}
+        />
         {racing && (
           <div className={pb.raceHint}>화면을 꾹 누르면 2배속 ⏩</div>
         )}

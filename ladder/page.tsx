@@ -23,7 +23,10 @@ export const metadata: Metadata = {
 
 export default function LadderPage() {
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{ ["--gm-neon" as string]: "#00E5FF" } as React.CSSProperties}
+    >
       <TrackView slug="ladder" />
       <GameJsonLd
         name="사다리 게임"

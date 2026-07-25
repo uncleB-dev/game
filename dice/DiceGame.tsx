@@ -9,6 +9,7 @@ import dice from "./dice.module.css";
 import Confetti from "../Confetti";
 import { useShake } from "../useShake";
 import { trackPlay } from "../track";
+import FullscreenToggle from "../FullscreenToggle";
 
 /**
  * 주사위 던지기 — three.js(렌더) + cannon-es(강체 물리) 실제 3D 시뮬레이션.
@@ -602,13 +603,11 @@ export default function DiceGame() {
 
       <div className={`${dice.arenaWrap} ${expanded ? dice.arenaFull : ""}`}>
         <div className={dice.arena} ref={mountRef} />
-        <button
-          className={dice.fsBtn}
-          onClick={toggleFs}
-          aria-label={expanded ? "전체화면 닫기" : "전체화면"}
-        >
-          {expanded ? "✕" : "⛶"}
-        </button>
+        <FullscreenToggle
+          expanded={expanded}
+          onToggle={toggleFs}
+          hint=<>주사위를 <b>전체화면</b>으로 굴리면 훨씬 시원해요!</>
+        />
         {expanded && (
           <div className={dice.fsControls}>
             <button
