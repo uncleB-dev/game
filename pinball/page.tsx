@@ -3,6 +3,7 @@ import Link from "next/link";
 import PinballGame from "./PinballGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
+import { gameUrl, GAME_OG_IMAGE } from "../site";
 
 export const metadata: Metadata = {
   title: "복불복 핀볼 | UncleB Games",
@@ -12,10 +13,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "복불복 핀볼 | UncleB Games",
     description: "구슬 물리 레이스로 당첨자를 뽑아보세요. 6가지 맵!",
-    url: "https://unclebstudio.com/game/pinball",
-    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
+    url: gameUrl("/game/pinball"),
+    images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: { canonical: "/game/pinball" },
+  alternates: { canonical: gameUrl("/game/pinball") },
 };
 
 export default function PinballPage() {

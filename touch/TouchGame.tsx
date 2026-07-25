@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "../game.module.css";
 import t from "./touch.module.css";
 import Confetti from "../Confetti";
+import { Sfx } from "../sfx";
 
 /**
  * 스피드 터치 — 제한시간 안에 자기 구역을 더 많이 터치한 사람이 승리.
  * 1명 = 전체 화면, 2명 = 상/하 2분할(위쪽은 180° 회전), 3~4명 = 4분할.
  * 게임 중에는 화면 전체를 덮는 고정 오버레이 사용 (전체 화면이 포인트!).
+ *
+ * 출발 신호는 READY → SET → (랜덤 대기) → GO! 순서다.
+ * 랜덤 대기가 있어야 GO 타이밍을 미리 재고 손을 내리치는 부정 출발을 막을 수 있다.
  */
 
 const COLORS = ["#1A5CFF", "#FF6A00", "#00B894", "#E84393"];
@@ -17,7 +21,15 @@ const DURATIONS = [10, 15, 20, 30, 45, 60];
 const MIN_P = 1;
 const MAX_P = 4;
 
+// 출발 신호 타이밍(ms)
+const READY_MS = 900;
+const SET_MS = 900;
+const GO_MIN_MS = 500;
+const GO_RAND_MS = 2200; // SET 이후 0.5~2.7초 사이 랜덤으로 GO
+const GO_FLASH_MS = 550;
+
 type Phase = "setup" | "count" | "play" | "done";
+type Cue = "" | "READY" | "SET" | "GO!";
 type Ripple = { id: number; x: number; y: number };
 type Zone = { p: number; rot: boolean };
 
@@ -42,26 +54,56 @@ export default function TouchGame() {
   const [players, setPlayers] = useState(2);
   const [duration, setDuration] = useState(20);
   const [phase, setPhase] = useState<Phase>("setup");
-  const [countdown, setCountdown] = useState(3);
+  const [cue, setCue] = useState<Cue>("");
   const [timeLeft, setTimeLeft] = useState(20);
   const [scores, setScores] = useState<number[]>([0, 0, 0, 0]);
   const [ripples, setRipples] = useState<Ripple[][]>([[], [], [], []]);
+  const [sound, setSound] = useState(true);
   const rippleId = useRef(0);
+  const tapCount = useRef<number[]>([0, 0, 0, 0]);
 
-  // 카운트다운 3·2·1 → GO
+  // 효과음 (오실레이터 합성 — 음원 파일 없음)
+  const sfxRef = useRef<Sfx | null>(null);
+  if (sfxRef.current === null && typeof window !== "undefined") {
+    sfxRef.current = new Sfx();
+  }
+  useEffect(() => {
+    sfxRef.current?.setEnabled(sound);
+  }, [sound]);
+  useEffect(() => {
+    const sfx = sfxRef.current;
+    return () => sfx?.dispose();
+  }, []);
+
+  // 출발 신호: READY → SET → (랜덤 대기) → GO!
   useEffect(() => {
     if (phase !== "count") return;
-    const iv = window.setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          window.clearInterval(iv);
-          setPhase("play");
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 800);
-    return () => window.clearInterval(iv);
+    const sfx = sfxRef.current;
+    const timers: number[] = [];
+
+    setCue("READY");
+    sfx?.cue(false);
+
+    timers.push(
+      window.setTimeout(() => {
+        setCue("SET");
+        sfx?.cue(true);
+      }, READY_MS),
+    );
+
+    const goAt = READY_MS + SET_MS + GO_MIN_MS + Math.random() * GO_RAND_MS;
+    timers.push(
+      window.setTimeout(() => {
+        setCue("GO!");
+        sfx?.start();
+        setPhase("play");
+      }, goAt),
+    );
+    timers.push(
+      window.setTimeout(() => setCue(""), goAt + GO_FLASH_MS),
+    );
+
+    return () => timers.forEach((id) => window.clearTimeout(id));
   }, [phase]);
 
   // 플레이 타이머
@@ -73,6 +115,8 @@ export default function TouchGame() {
       if (left <= 0) {
         window.clearInterval(iv);
         setTimeLeft(0);
+        setCue("");
+        sfxRef.current?.end();
         setPhase("done");
       } else {
         setTimeLeft(left);
@@ -89,12 +133,19 @@ export default function TouchGame() {
     };
   }, [phase]);
 
-  const begin = () => {
+  // 라운드 시작 — 반드시 사용자 제스처 안에서 호출해야 오디오가 열린다.
+  const startRound = useCallback(() => {
+    sfxRef.current?.unlock();
+    tapCount.current = [0, 0, 0, 0];
     setScores([0, 0, 0, 0]);
     setRipples([[], [], [], []]);
     setTimeLeft(duration);
-    setCountdown(3);
+    setCue("");
     setPhase("count");
+  }, [duration]);
+
+  const begin = () => {
+    startRound();
     // 전체화면 시도 (지원 브라우저 한정, 실패해도 고정 오버레이로 충분)
     document.documentElement.requestFullscreen?.().catch(() => {});
   };
@@ -111,6 +162,10 @@ export default function TouchGame() {
   const tap = (zone: number, rot: boolean) => (e: React.PointerEvent<HTMLDivElement>) => {
     if (phase !== "play" || zone < 0) return;
     e.preventDefault();
+    // 연타 콤보용 카운터는 ref로 센다 (setState 업데이터 안에서 소리를 내면
+    // StrictMode 이중 호출 때 두 번 울린다)
+    tapCount.current[zone] += 1;
+    sfxRef.current?.pop(tapCount.current[zone]);
     setScores((p) => p.map((s, i) => (i === zone ? s + 1 : s)));
     const rect = e.currentTarget.getBoundingClientRect();
     let x = e.clientX - rect.left;
@@ -195,12 +250,32 @@ export default function TouchGame() {
 
       <hr className={styles.divider} />
 
+      <p className={styles.sectionLabel}>🔊 효과음</p>
+      <div className={t.durRow}>
+        <button
+          className={`${t.durChip} ${sound ? t.durChipOn : ""}`}
+          onClick={() => setSound(true)}
+          aria-pressed={sound}
+        >
+          켜기
+        </button>
+        <button
+          className={`${t.durChip} ${!sound ? t.durChipOn : ""}`}
+          onClick={() => setSound(false)}
+          aria-pressed={!sound}
+        >
+          끄기
+        </button>
+      </div>
+
+      <hr className={styles.divider} />
+
       <div className={t.howto}>
         <p className={t.howtoTitle}>📖 게임 방법</p>
         <ol className={t.howtoList}>
           <li>인원과 제한 시간을 정하고 시작을 눌러요.</li>
-          <li>3·2·1·GO! 신호와 함께 자기 구역을 미친 듯이 터치!</li>
-          <li>여러 손가락 동시 터치도 인정 🖐</li>
+          <li>READY · SET 다음 GO! 가 언제 뜰지는 매번 랜덤이에요 — 미리 치면 손해!</li>
+          <li>GO! 신호와 함께 자기 구역을 미친 듯이 터치 🖐 (여러 손가락 동시 인정)</li>
           <li>시간 종료 시 가장 많이 터치한 사람이 승리 🏆</li>
         </ol>
       </div>
@@ -260,10 +335,12 @@ export default function TouchGame() {
             <div className={t.timerPill}>{timeLeft.toFixed(1)}</div>
           )}
 
-          {phase === "count" && (
-            <div className={t.countLayer}>
-              <span key={countdown} className={t.countNum}>
-                {countdown === 0 ? "GO!" : countdown}
+          {cue !== "" && (
+            <div
+              className={`${t.countLayer} ${cue === "GO!" ? t.countLayerGo : ""}`}
+            >
+              <span key={cue} className={`${t.countNum} ${t.countWord}`}>
+                {cue}
               </span>
             </div>
           )}
@@ -308,13 +385,7 @@ export default function TouchGame() {
                   <button
                     className={styles.btnPrimary}
                     style={{ minWidth: 140 }}
-                    onClick={() => {
-                      setScores([0, 0, 0, 0]);
-                      setRipples([[], [], [], []]);
-                      setTimeLeft(duration);
-                      setCountdown(3);
-                      setPhase("count");
-                    }}
+                    onClick={startRound}
                   >
                     한 판 더! ⚡
                   </button>

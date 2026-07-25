@@ -3,6 +3,7 @@ import Link from "next/link";
 import YutGame from "./YutGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
+import { gameUrl, GAME_OG_IMAGE } from "../site";
 
 export const metadata: Metadata = {
   title: "윷놀이 (3D) | UncleB Games",
@@ -12,10 +13,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "윷놀이 (3D) | UncleB Games",
     description: "윷을 던져 도·개·걸·윷·모·빽도를 맞혀보세요.",
-    url: "https://unclebstudio.com/game/yut",
-    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
+    url: gameUrl("/game/yut"),
+    images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: { canonical: "/game/yut" },
+  alternates: { canonical: gameUrl("/game/yut") },
 };
 
 export default function YutPage() {

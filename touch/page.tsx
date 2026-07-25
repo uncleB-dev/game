@@ -3,6 +3,7 @@ import Link from "next/link";
 import TouchGame from "./TouchGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
+import { gameUrl, GAME_OG_IMAGE } from "../site";
 
 export const metadata: Metadata = {
   title: "스피드 터치 | UncleB Games",
@@ -12,10 +13,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "스피드 터치 | UncleB Games",
     description: "화면을 나눠 동시에! 누가 제일 빨리 터치할까?",
-    url: "https://unclebstudio.com/game/touch",
-    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
+    url: gameUrl("/game/touch"),
+    images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: { canonical: "/game/touch" },
+  alternates: { canonical: gameUrl("/game/touch") },
 };
 
 export default function TouchPage() {

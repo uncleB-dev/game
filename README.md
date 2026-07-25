@@ -1,6 +1,12 @@
 # UncleB Games 🎮
 
-엉클비스튜디오의 미니게임 모음 소스. `unclebstudio.com/game` 에서 서비스됩니다.
+엉클비스튜디오의 미니게임 모음 소스. **`game.unclebstudio.com`** 에서 서비스됩니다.
+
+> ⚠️ **정본 URL은 서브도메인입니다.**
+> 코드상 라우트는 호스트 앱의 `/game/*` 그대로지만, 호스트의 `middleware.ts` 가
+> `game.` 서브도메인 요청을 `/game/*` 로 내부 rewrite 하고,
+> `unclebstudio.com/game/*` 는 서브도메인으로 301 리다이렉트됩니다.
+> 따라서 metadata·JSON-LD의 절대 URL은 반드시 `site.ts` 의 `gameUrl()` 을 거쳐야 합니다.
 
 ## 구조
 
@@ -30,15 +36,22 @@ ladder/LadderGame.tsx → 사다리 게임 본체 ("use client")
 | 🎱 로또 추첨기 | `/game/lotto` | 에어젯 물리로 볼 섞고 추첨 (번호·개수 설정) |
 | 🔮 복불복 핀볼 | `/game/pinball` | 구슬 물리 레이스 당첨자 추첨, 6맵 (원작 lazygyu/roulette MIT) |
 
+표의 경로는 **코드상 라우트**입니다. 실제 서비스 URL은 `/game` 접두사를 뗀 `game.unclebstudio.com/ladder` 형태입니다.
+
 ### 공용 유틸
+- `site.ts` — 정본 호스트(`game.unclebstudio.com`) + `gameUrl()` 절대 URL 헬퍼
+- `sfx.ts` — Web Audio 오실레이터 합성 효과음 (음원 파일 없음)
 - `useShake.ts` — 흔들기(DeviceMotion) 감지 훅 (iOS 권한 처리 포함)
 - `Confetti.tsx` / `confetti.module.css` — 결과 연출용 컨페티
 
 ## 새 게임 추가 방법
 
 1. `app/game/<game-name>/page.tsx` 라우트 + 본체 컴포넌트 작성
-2. `page.tsx`(허브)의 `GAMES` 배열에 카드 추가
-3. 공용 스타일은 `game.module.css` 재사용
+2. metadata의 `openGraph.url` / `alternates.canonical` 은 `gameUrl("/game/<game-name>")` 사용
+   (하드코딩 금지 — 정본이 서브도메인이라 상대 canonical은 잘못된 호스트로 해석됨)
+3. `page.tsx`(허브)의 `GAMES` 배열에 카드 추가
+4. 호스트 레포의 `public/sitemap-game.xml` 에 URL 추가
+5. 공용 스타일은 `game.module.css` 재사용
 
 ## 호스트 연동 (서브모듈)
 

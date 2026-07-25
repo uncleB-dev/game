@@ -3,6 +3,7 @@ import Link from "next/link";
 import LadderGame from "./LadderGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
+import { gameUrl, GAME_OG_IMAGE } from "../site";
 
 export const metadata: Metadata = {
   title: "사다리 게임 | UncleB Games",
@@ -13,10 +14,10 @@ export const metadata: Metadata = {
     title: "사다리 게임 | UncleB Games",
     description:
       "최대 10명까지 함께 즐기는 온라인 사다리타기. 당첨 인원도 자유롭게 설정하세요.",
-    url: "https://unclebstudio.com/game/ladder",
-    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
+    url: gameUrl("/game/ladder"),
+    images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: { canonical: "/game/ladder" },
+  alternates: { canonical: gameUrl("/game/ladder") },
 };
 
 export default function LadderPage() {
