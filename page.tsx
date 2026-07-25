@@ -29,7 +29,7 @@ type GameItem = {
 
 const GAMES: GameItem[] = [
   {
-    href: "/game/ladder",
+    href: "/ladder",
     emoji: "🪜",
     title: "사다리 게임",
     desc: "최대 10명 참가, 당첨 인원 자유 설정. 커피 내기부터 청소 당번까지!",
@@ -37,7 +37,7 @@ const GAMES: GameItem[] = [
     ready: true,
   },
   {
-    href: "/game/wheel",
+    href: "/wheel",
     emoji: "🎡",
     title: "빅휠",
     desc: "화려한 네온 룰렛! 항목을 넣고 돌려서 운명의 하나를 뽑아요.",
@@ -45,7 +45,7 @@ const GAMES: GameItem[] = [
     ready: true,
   },
   {
-    href: "/game/dice",
+    href: "/dice",
     emoji: "🎲",
     title: "주사위 던지기",
     desc: "3D 주사위를 화면 안에서 굴려요. 개수 선택, 폰 흔들기 지원!",
@@ -53,7 +53,7 @@ const GAMES: GameItem[] = [
     ready: true,
   },
   {
-    href: "/game/yut",
+    href: "/yut",
     emoji: "🪵",
     title: "윷놀이",
     desc: "윷가락 4개를 던져 도·개·걸·윷·모·빽도! 흔들거나 버튼으로.",
@@ -61,7 +61,7 @@ const GAMES: GameItem[] = [
     ready: true,
   },
   {
-    href: "/game/touch",
+    href: "/touch",
     emoji: "⚡",
     title: "스피드 터치",
     desc: "1~4명이 화면을 나눠 동시에! 제한시간 안에 더 많이 터치하면 승리.",
@@ -69,7 +69,7 @@ const GAMES: GameItem[] = [
     ready: true,
   },
   {
-    href: "/game/lotto",
+    href: "/lotto",
     emoji: "🎱",
     title: "로또 추첨기",
     desc: "에어젯 바람으로 볼을 섞고 하나씩 추첨! 번호·개수 설정 가능.",
@@ -77,7 +77,7 @@ const GAMES: GameItem[] = [
     ready: true,
   },
   {
-    href: "/game/pinball",
+    href: "/pinball",
     emoji: "🔮",
     title: "복불복 핀볼",
     desc: "이름을 넣고 구슬을 굴려 당첨자 추첨! 물리 핀볼 레이스, 6가지 맵.",
@@ -102,9 +102,10 @@ export default function GameHubPage() {
             <span className={styles.brandDot} />
             UncleB Games
           </Link>
-          <Link href="/" className={styles.backLink}>
-            ← 홈으로
-          </Link>
+          {/* 정본이 서브도메인이라 "/" 는 이 허브 자신이다. 스튜디오 홈은 절대 URL로. */}
+          <a href="https://unclebstudio.com" className={styles.backLink}>
+            ← 엉클비스튜디오
+          </a>
         </div>
 
         <header className={styles.hero}>

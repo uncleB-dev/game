@@ -35,7 +35,7 @@ export default function LadderPage() {
             <span className={styles.brandDot} />
             UncleB Games
           </Link>
-          <Link href="/game" className={styles.backLink}>
+          <Link href="/" className={styles.backLink}>
             ← 게임 목록
           </Link>
         </div>
