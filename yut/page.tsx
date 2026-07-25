@@ -4,6 +4,7 @@ import YutGame from "./YutGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
+import TrackView from "../TrackView";
 
 export const metadata: Metadata = {
   title: "윷놀이 (3D) | UncleB Games",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default function YutPage() {
   return (
     <div className={styles.page}>
+      <TrackView slug="yut" />
       <GameJsonLd
         name="윷놀이 (3D)"
         description="3D 물리로 던지는 윷가락 4개. 도·개·걸·윷·모·빽도 자동 판정."

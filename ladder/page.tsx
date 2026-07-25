@@ -4,6 +4,7 @@ import LadderGame from "./LadderGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
+import TrackView from "../TrackView";
 
 export const metadata: Metadata = {
   title: "사다리 게임 | UncleB Games",
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
 export default function LadderPage() {
   return (
     <div className={styles.page}>
+      <TrackView slug="ladder" />
       <GameJsonLd
         name="사다리 게임"
         description="최대 10명이 함께하는 온라인 사다리타기. 당첨 인원 설정, 애니메이션 결과 공개."

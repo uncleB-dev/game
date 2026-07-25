@@ -1,0 +1,488 @@
+/*
+ * UncleB Games 허브 — 네온 아케이드.
+ *
+ * 밤에 불 켜진 오락실 간판이 컨셉이다. 어두운 배경 위에 시안/마젠타/보라 네온이
+ * 번지고, CRT 스캔라인이 얇게 깔린다. 게임별 강조색(games.ts 의 neon)은
+ * --neon 커스텀 프로퍼티로 카드마다 주입한다.
+ *
+ * 접근성: 모든 발광·부유 애니메이션은 prefers-reduced-motion 에서 멈춘다.
+ * 파일 맨 아래 미디어쿼리 하나로 일괄 처리하므로 새 애니메이션을 추가하면
+ * 그 목록에도 추가할 것.
+ */
+
+.page {
+  --bg: #07070f;
+  --bg-soft: #0d0d1a;
+  --cyan: #00e5ff;
+  --magenta: #ff2d95;
+  --violet: #a855f7;
+  --text: #eaf2ff;
+  --text-dim: #7d89ad;
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  font-family: inherit;
+}
+
+/* ── 배경 레이어 ─────────────────────────────────────────── */
+
+/* 바닥에서 올라오는 네온 안개 */
+.bgGlow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 15% 12%, rgba(0, 229, 255, 0.16), transparent 70%),
+    radial-gradient(55% 45% at 85% 20%, rgba(255, 45, 149, 0.14), transparent 70%),
+    radial-gradient(70% 50% at 50% 108%, rgba(168, 85, 247, 0.22), transparent 70%);
+}
+
+/* 원근 그리드 — 오락실 바닥 */
+.bgGrid {
+  position: fixed;
+  left: 50%;
+  bottom: -10vh;
+  width: 300vw;
+  height: 60vh;
+  z-index: 0;
+  pointer-events: none;
+  transform: translateX(-50%) perspective(50vh) rotateX(72deg);
+  transform-origin: bottom center;
+  background-image:
+    linear-gradient(to right, rgba(0, 229, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(168, 85, 247, 0.18) 1px, transparent 1px);
+  background-size: 5vw 5vh;
+  mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+  animation: gridScroll 4s linear infinite;
+}
+@keyframes gridScroll {
+  from { background-position: 0 0; }
+  to   { background-position: 0 5vh; }
+}
+
+/* CRT 스캔라인 */
+.bgScan {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.28) 3px,
+    rgba(0, 0, 0, 0.28) 4px
+  );
+}
+
+/* 마우스를 따라다니는 스포트라이트 (--mx/--my 는 JS가 주입) */
+.spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    28rem 28rem at var(--mx, 50%) var(--my, 40%),
+    rgba(0, 229, 255, 0.1),
+    transparent 65%
+  );
+  transition: background 0.18s ease-out;
+}
+
+.shell {
+  position: relative;
+  z-index: 2;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 20px 96px;
+}
+
+/* ── 상단바 ──────────────────────────────────────────────── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 4px 0;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--text);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.brandDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan), 0 0 22px var(--cyan);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.82); }
+}
+.backLink {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  transition: color 0.18s, border-color 0.18s, box-shadow 0.18s;
+  white-space: nowrap;
+}
+.backLink:hover {
+  color: var(--text);
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.32);
+}
+
+/* ── 히어로 (네온 간판) ──────────────────────────────────── */
+
+.hero {
+  text-align: center;
+  padding: 68px 8px 46px;
+}
+.marquee {
+  display: inline-block;
+  padding: 9px 22px;
+  border: 1.5px solid rgba(255, 45, 149, 0.55);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em; /* letter-spacing 이 만든 우측 여백 보정 */
+  color: var(--magenta);
+  text-shadow: 0 0 12px rgba(255, 45, 149, 0.85);
+  box-shadow: 0 0 22px rgba(255, 45, 149, 0.26), inset 0 0 22px rgba(255, 45, 149, 0.12);
+  margin-bottom: 26px;
+}
+.title {
+  font-size: clamp(38px, 8.5vw, 84px);
+  font-weight: 900;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin: 0 0 18px;
+}
+/* 네온 사인 — 켜질 때 몇 번 깜빡이고 안정된다 */
+.titleNeon {
+  color: #fff;
+  text-shadow:
+    0 0 6px #fff,
+    0 0 18px var(--cyan),
+    0 0 42px var(--cyan),
+    0 0 76px rgba(0, 229, 255, 0.55);
+  animation: flicker 3.6s ease-in-out 0.2s both;
+}
+.titleNeonAlt {
+  color: #fff;
+  text-shadow:
+    0 0 6px #fff,
+    0 0 18px var(--magenta),
+    0 0 42px var(--magenta),
+    0 0 76px rgba(255, 45, 149, 0.5);
+  animation: flicker 3.6s ease-in-out 0.45s both;
+}
+@keyframes flicker {
+  0%   { opacity: 0.2; }
+  4%   { opacity: 1; }
+  8%   { opacity: 0.3; }
+  12%  { opacity: 1; }
+  15%  { opacity: 0.5; }
+  18%, 100% { opacity: 1; }
+}
+.subtitle {
+  font-size: clamp(13.5px, 2.4vw, 16px);
+  line-height: 1.75;
+  color: var(--text-dim);
+  margin: 0;
+}
+.coinSlot {
+  margin-top: 26px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.7);
+  animation: blink 1.15s steps(1) infinite;
+}
+@keyframes blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0.12; }
+}
+
+/* ── 정렬 툴바 ───────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 26px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+}
+.toolbarLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.sortRow {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.sortBtn {
+  padding: 9px 17px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, box-shadow 0.18s, background 0.18s;
+}
+.sortBtn:hover {
+  color: var(--text);
+  border-color: rgba(0, 229, 255, 0.5);
+}
+.sortBtnOn {
+  color: #04121a;
+  background: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+}
+.sortNote {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  width: 100%;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ── 카드 그리드 ─────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  --neon: var(--cyan);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 26px 22px 22px;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.16s ease-out,
+    border-color 0.22s,
+    box-shadow 0.22s;
+}
+/* 호버 시 카드 안쪽에서 게임 고유색이 번진다 */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(80% 60% at 50% 0%, var(--neon), transparent 72%);
+  transition: opacity 0.28s;
+}
+.card:hover,
+.card:focus-visible {
+  border-color: var(--neon);
+  box-shadow: 0 0 26px -4px var(--neon), 0 18px 44px -22px #000;
+  outline: none;
+}
+.card:hover::before,
+.card:focus-visible::before {
+  opacity: 0.2;
+}
+.card:active {
+  transform: translateY(2px) scale(0.99);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.cardEmoji {
+  font-size: 46px;
+  line-height: 1;
+  filter: drop-shadow(0 0 14px var(--neon));
+}
+.cardTitle {
+  font-size: 20px;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.cardDesc {
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: var(--text-dim);
+  margin: 0;
+  flex: 1;
+}
+
+/* 배지 */
+.badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.badge {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.badgeNew {
+  color: #0b0b12;
+  background: var(--magenta);
+  box-shadow: 0 0 16px rgba(255, 45, 149, 0.75);
+  animation: blink 1.05s steps(1) infinite;
+}
+.badgeHot {
+  color: #0b0b12;
+  background: linear-gradient(90deg, #ffb020, #ff6a00);
+  box-shadow: 0 0 14px rgba(255, 140, 0, 0.6);
+}
+.badgeRank {
+  color: var(--text-dim);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.cardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.plays {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.playBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  color: var(--neon);
+  text-shadow: 0 0 12px var(--neon);
+}
+.card:hover .playBtn {
+  animation: blink 0.7s steps(1) infinite;
+}
+
+/* 준비중 카드 */
+.cardSoon {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.14);
+  opacity: 0.55;
+  cursor: default;
+}
+.cardSoon:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.cardSoon:hover::before { opacity: 0; }
+
+/* ── 푸터 ────────────────────────────────────────────────── */
+
+.footer {
+  margin-top: 60px;
+  text-align: center;
+  font-size: 11.5px;
+  line-height: 1.9;
+  color: var(--text-dim);
+}
+.footer a {
+  color: var(--cyan);
+  text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
+
+/* ── 진입 애니메이션 ─────────────────────────────────────── */
+
+.rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── 모션 최소화 ─────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .bgGrid,
+  .brandDot,
+  .titleNeon,
+  .titleNeonAlt,
+  .coinSlot,
+  .badgeNew,
+  .rise,
+  .card:hover .playBtn {
+    animation: none !important;
+  }
+  .spotlight { display: none; }
+  .card { transition: border-color 0.2s, box-shadow 0.2s; }
+  .titleNeon,
+  .titleNeonAlt { opacity: 1; }
+}
+
+/* 모바일에서는 3D 기울기·스포트라이트를 끄고 여백을 줄인다 */
+@media (max-width: 640px) {
+  .spotlight { display: none; }
+  .hero { padding: 44px 6px 34px; }
+  .shell { padding: 16px 14px 72px; }
+  .grid { grid-template-columns: 1fr; gap: 15px; }
+  .toolbar { padding: 12px 13px; }
+}

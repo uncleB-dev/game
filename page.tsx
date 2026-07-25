@@ -1,164 +1,72 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import styles from "./game.module.css";
+import { createClient } from "@supabase/supabase-js";
+import ArcadeHub from "./ArcadeHub";
 import { GamesHubJsonLd } from "./seo";
 import { gameUrl, GAME_OG_IMAGE } from "./site";
+import { GAMES, POPULAR_WINDOW_DAYS } from "./games";
+import type { PlayCounts } from "./sort";
 
 export const metadata: Metadata = {
   title: "UncleB Games — 미니게임 모음",
   description:
-    "엉클비스튜디오가 만든 가볍고 재밌는 미니게임 모음. 사다리 게임부터 시작해 하나씩 늘려갑니다.",
+    "설치·로그인 없이 브라우저에서 바로 즐기는 무료 미니게임 오락실. 사다리타기, 룰렛, 3D 주사위, 윷놀이, 스피드 터치, 로또 추첨기, 복불복 핀볼.",
   keywords: ["미니게임","무료 게임","온라인 게임","브라우저 게임","사다리타기","룰렛","주사위","윷놀이","스피드 터치","로또 번호 생성기","엉클비 게임즈","UncleB Games"],
   openGraph: {
     title: "UncleB Games — 미니게임 모음",
-    description: "가볍고 재밌는 미니게임 모음. 친구들과 함께 즐겨보세요.",
+    description: "가볍고 재밌는 미니게임 오락실. 친구들과 함께 즐겨보세요.",
     url: gameUrl("/game"),
     images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
   alternates: { canonical: gameUrl("/game") },
 };
 
-type GameItem = {
-  href: string;
-  emoji: string;
-  title: string;
-  desc: string;
-  badge: string;
-  ready: boolean;
-};
+// 플레이 집계는 자주 바뀌지 않는다. 5분 캐시로 DB 부하와 신선도를 맞춘다.
+export const revalidate = 300;
 
-const GAMES: GameItem[] = [
-  {
-    href: "/ladder",
-    emoji: "🪜",
-    title: "사다리 게임",
-    desc: "최대 10명 참가, 당첨 인원 자유 설정. 커피 내기부터 청소 당번까지!",
-    badge: "PLAY",
-    ready: true,
-  },
-  {
-    href: "/wheel",
-    emoji: "🎡",
-    title: "빅휠",
-    desc: "화려한 네온 룰렛! 항목을 넣고 돌려서 운명의 하나를 뽑아요.",
-    badge: "PLAY",
-    ready: true,
-  },
-  {
-    href: "/dice",
-    emoji: "🎲",
-    title: "주사위 던지기",
-    desc: "3D 주사위를 화면 안에서 굴려요. 개수 선택, 폰 흔들기 지원!",
-    badge: "PLAY",
-    ready: true,
-  },
-  {
-    href: "/yut",
-    emoji: "🪵",
-    title: "윷놀이",
-    desc: "윷가락 4개를 던져 도·개·걸·윷·모·빽도! 흔들거나 버튼으로.",
-    badge: "PLAY",
-    ready: true,
-  },
-  {
-    href: "/touch",
-    emoji: "⚡",
-    title: "스피드 터치",
-    desc: "1~4명이 화면을 나눠 동시에! 제한시간 안에 더 많이 터치하면 승리.",
-    badge: "PLAY",
-    ready: true,
-  },
-  {
-    href: "/lotto",
-    emoji: "🎱",
-    title: "로또 추첨기",
-    desc: "에어젯 바람으로 볼을 섞고 하나씩 추첨! 번호·개수 설정 가능.",
-    badge: "PLAY",
-    ready: true,
-  },
-  {
-    href: "/pinball",
-    emoji: "🔮",
-    title: "복불복 핀볼",
-    desc: "이름을 넣고 구슬을 굴려 당첨자 추첨! 물리 핀볼 레이스, 6가지 맵.",
-    badge: "PLAY",
-    ready: true,
-  },
-];
+/**
+ * 최근 POPULAR_WINDOW_DAYS 일간 게임별 플레이 수.
+ *
+ * 원시 이벤트는 운영자만 읽을 수 있고(RLS), 순위만 돌려주는 SECURITY DEFINER
+ * 함수에 anon 실행 권한을 줘서 허브가 집계 결과만 가져간다.
+ * 집계가 실패해도 허브는 떠야 하므로 빈 결과로 폴백한다(= 출시일순 표시).
+ */
+async function fetchPlayCounts(): Promise<PlayCounts> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return {};
 
-export default function GameHubPage() {
+  try {
+    const supabase = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data, error } = await supabase.rpc("game_play_ranking", {
+      days: POPULAR_WINDOW_DAYS,
+    });
+    if (error || !data) return {};
+
+    const counts: PlayCounts = {};
+    for (const row of data as { game_slug: string; plays: number }[]) {
+      counts[row.game_slug] = Number(row.plays) || 0;
+    }
+    return counts;
+  } catch {
+    return {};
+  }
+}
+
+export default async function GameHubPage() {
+  const plays = await fetchPlayCounts();
+
   return (
-    <div className={styles.page}>
+    <>
       <GamesHubJsonLd
-        games={GAMES.filter((g) => g.ready).map((g) => ({
+        games={GAMES.map((g) => ({
           name: g.title,
-          path: g.href,
+          path: `/game/${g.slug}`,
           description: g.desc,
         }))}
       />
-      <div className={styles.shell}>
-        <div className={styles.topbar}>
-          <Link href="/" className={styles.brand}>
-            <span className={styles.brandDot} />
-            UncleB Games
-          </Link>
-          {/* 정본이 서브도메인이라 "/" 는 이 허브 자신이다. 스튜디오 홈은 절대 URL로. */}
-          <a href="https://unclebstudio.com" className={styles.backLink}>
-            ← 엉클비스튜디오
-          </a>
-        </div>
-
-        <header className={styles.hero}>
-          <span className={styles.eyebrow}>MINIGAMES</span>
-          <h1 className={styles.title}>
-            심심할 땐,
-            <br />
-            엉클비 게임 한 판 🎮
-          </h1>
-          <p className={styles.subtitle}>
-            설치도 로그인도 없이 바로 즐기는 가벼운 미니게임 모음.
-            <br />
-            하나씩 계속 늘어납니다.
-          </p>
-        </header>
-
-        <div className={styles.grid}>
-          {GAMES.map((g) =>
-            g.ready ? (
-              <Link key={g.href} href={g.href} className={styles.card}>
-                <span className={styles.cardEmoji}>{g.emoji}</span>
-                <h2 className={styles.cardTitle}>{g.title}</h2>
-                <p className={styles.cardDesc}>{g.desc}</p>
-                <span className={styles.cardBadge}>{g.badge}</span>
-              </Link>
-            ) : (
-              <div
-                key={g.href}
-                className={`${styles.card} ${styles.cardDisabled}`}
-              >
-                <span className={styles.cardEmoji}>{g.emoji}</span>
-                <h2 className={styles.cardTitle}>{g.title}</h2>
-                <p className={styles.cardDesc}>{g.desc}</p>
-                <span className={`${styles.cardBadge} ${styles.cardBadgeSoon}`}>
-                  {g.badge}
-                </span>
-              </div>
-            ),
-          )}
-
-          {/* 다음 게임 예고 카드 */}
-          <div className={`${styles.card} ${styles.cardDisabled}`}>
-            <span className={styles.cardEmoji}>🎲</span>
-            <h2 className={styles.cardTitle}>다음 게임</h2>
-            <p className={styles.cardDesc}>
-              새로운 미니게임을 준비하고 있어요. 곧 만나요!
-            </p>
-            <span className={`${styles.cardBadge} ${styles.cardBadgeSoon}`}>
-              준비중
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
+      <ArcadeHub plays={plays} now={Date.now()} />
+    </>
   );
 }

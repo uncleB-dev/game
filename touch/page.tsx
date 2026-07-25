@@ -4,6 +4,7 @@ import TouchGame from "./TouchGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
+import TrackView from "../TrackView";
 
 export const metadata: Metadata = {
   title: "스피드 터치 | UncleB Games",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default function TouchPage() {
   return (
     <div className={styles.page}>
+      <TrackView slug="touch" />
       <GameJsonLd
         name="스피드 터치"
         description="1~4명이 화면을 나눠 동시에 터치 대결. 제한시간 내 최다 터치 승리."

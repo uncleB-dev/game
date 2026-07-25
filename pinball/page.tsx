@@ -4,6 +4,7 @@ import PinballGame from "./PinballGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
+import TrackView from "../TrackView";
 
 export const metadata: Metadata = {
   title: "복불복 핀볼 | UncleB Games",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default function PinballPage() {
   return (
     <div className={styles.page}>
+      <TrackView slug="pinball" />
       <GameJsonLd
         name="복불복 핀볼"
         description="이름을 넣고 구슬을 굴려 당첨자를 뽑는 물리 핀볼 레이스. 6가지 맵과 스킬."

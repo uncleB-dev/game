@@ -5,6 +5,7 @@ import styles from "../game.module.css";
 import t from "./touch.module.css";
 import Confetti from "../Confetti";
 import { Sfx } from "../sfx";
+import { trackPlay } from "../track";
 
 /**
  * 스피드 터치 — 제한시간 안에 자기 구역을 더 많이 터치한 사람이 승리.
@@ -135,6 +136,7 @@ export default function TouchGame() {
 
   // 라운드 시작 — 반드시 사용자 제스처 안에서 호출해야 오디오가 열린다.
   const startRound = useCallback(() => {
+    trackPlay("touch");
     sfxRef.current?.unlock();
     tapCount.current = [0, 0, 0, 0];
     setScores([0, 0, 0, 0]);

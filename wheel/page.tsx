@@ -4,6 +4,7 @@ import BigWheel from "./BigWheel";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
+import TrackView from "../TrackView";
 
 export const metadata: Metadata = {
   title: "빅휠 (행운의 룰렛) | UncleB Games",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default function WheelPage() {
   return (
     <div className={styles.page}>
+      <TrackView slug="wheel" />
       <GameJsonLd
         name="빅휠 (행운의 룰렛)"
         description="항목을 넣고 돌리는 화려한 네온 룰렛. 메뉴 정하기·벌칙·추첨에 활용."

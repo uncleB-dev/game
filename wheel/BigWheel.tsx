@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import styles from "../game.module.css";
 import wheel from "./wheel.module.css";
 import Confetti from "../Confetti";
+import { trackPlay } from "../track";
 
 /**
  * 빅휠 (행운의 룰렛) — 항목을 정하고 돌려서 하나를 뽑는다.
@@ -55,6 +56,7 @@ export default function BigWheel() {
     setEntries((p) => (p.length <= MIN ? p : p.filter((_, idx) => idx !== i)));
 
   const spin = () => {
+    trackPlay("wheel");
     if (spinning || n < MIN) return;
     const idx = Math.floor(Math.random() * n);
     const spins = 5 + Math.floor(Math.random() * 3);
