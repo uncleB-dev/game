@@ -65,21 +65,11 @@
   to   { background-position: 0 5vh; }
 }
 
-/* CRT 스캔라인 */
-.bgScan {
-  position: fixed;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0.5;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.28) 3px,
-    rgba(0, 0, 0, 0.28) 4px
-  );
-}
+/*
+ * CRT 스캔라인은 걷어냈다. 화면 전체에 줄이 지나가니 카드·글자 위까지 덮여
+ * 읽기 불편했다. 아케이드 분위기는 네온·그리드·스포트라이트로 충분하다.
+ * (게임 페이지에서는 게임이 그려지는 면 안쪽에만 남겨뒀다)
+ */
 
 /* 마우스를 따라다니는 스포트라이트 (--mx/--my 는 JS가 주입) */
 .spotlight {

@@ -570,7 +570,7 @@ export default function LottoGame() {
       </div>
 
       {/* 드럼 */}
-      <div className={`${lt.arenaWrap} ${expanded ? lt.arenaFull : ""}`}>
+      <div className={`${lt.arenaWrap} ${styles.scanlines} ${expanded ? lt.arenaFull : ""}`}>
         <div className={lt.arena} ref={mountRef} />
         <FullscreenToggle
           expanded={expanded}

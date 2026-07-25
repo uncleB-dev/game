@@ -601,7 +601,7 @@ export default function DiceGame() {
         </div>
       </div>
 
-      <div className={`${dice.arenaWrap} ${expanded ? dice.arenaFull : ""}`}>
+      <div className={`${dice.arenaWrap} ${styles.scanlines} ${expanded ? dice.arenaFull : ""}`}>
         <div className={dice.arena} ref={mountRef} />
         <FullscreenToggle
           expanded={expanded}
