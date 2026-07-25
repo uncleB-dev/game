@@ -2,21 +2,13 @@
 
 import { useMemo } from "react";
 import styles from "./confetti.module.css";
+import { CONFETTI_PALETTE } from "./palette";
 
 /**
  * 결과 연출용 컨페티. show=true 인 동안만 마운트해서 뿌린다.
  * 각 조각은 무작위 위치/색/지연/회전으로 떨어진다(순수 CSS 애니메이션).
  */
-const CONFETTI_COLORS = [
-  "#1A5CFF",
-  "#FF6A00",
-  "#00B894",
-  "#E84393",
-  "#6C5CE7",
-  "#FDCB6E",
-  "#00CEC9",
-  "#FF3D71",
-];
+const CONFETTI_COLORS = CONFETTI_PALETTE;
 
 // 인덱스 기반 순수 의사난수(0~1) — 렌더 중 호출 가능(결정적).
 const frac = (x: number) => x - Math.floor(x);

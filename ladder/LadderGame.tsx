@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../game.module.css";
 import { trackPlay } from "../track";
 import FullscreenToggle from "../FullscreenToggle";
+import { NEON_PALETTE, WIN_COLOR, LOSE_COLOR } from "../palette";
 
 /**
  * 사다리 게임 (Amidakuji)
@@ -17,19 +18,8 @@ const MAX_PLAYERS = 10;
 const WIN_LABEL = "🎉 당첨";
 const LOSE_LABEL = "꽝";
 
-// 참가자별 고유 색상 팔레트 (최대 10명)
-const COLORS = [
-  "#1A5CFF",
-  "#FF6A00",
-  "#00B894",
-  "#E84393",
-  "#6C5CE7",
-  "#0984E3",
-  "#E1A700",
-  "#00CEC9",
-  "#D63031",
-  "#5B6470",
-];
+// 참가자별 고유 색상 — 공용 네온 팔레트 (최대 10명)
+const COLORS = NEON_PALETTE;
 
 // ── 사다리 캔버스 좌표 상수 (SVG viewBox 기준) ──
 const COL_GAP = 88;
@@ -534,11 +524,11 @@ export default function LadderGame() {
                     fill={
                       hit
                         ? isWin
-                          ? "#ff6a00"
-                          : "#1a5cff"
+                          ? WIN_COLOR
+                          : LOSE_COLOR
                         : isWin
-                          ? "#fff1e6"
-                          : "#f1f4fb"
+                          ? "rgba(255,176,32,0.16)"
+                          : "rgba(255,255,255,0.07)"
                     }
                     stroke={isWin && !hit ? "#ffd9a8" : "transparent"}
                   />
