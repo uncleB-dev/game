@@ -3,6 +3,7 @@ import Link from "next/link";
 import BigWheel from "./BigWheel";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
+import { gameUrl, GAME_OG_IMAGE } from "../site";
 
 export const metadata: Metadata = {
   title: "빅휠 (행운의 룰렛) | UncleB Games",
@@ -12,10 +13,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "빅휠 (행운의 룰렛) | UncleB Games",
     description: "화려한 네온 룰렛으로 하나를 뽑아보세요.",
-    url: "https://unclebstudio.com/game/wheel",
-    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
+    url: gameUrl("/game/wheel"),
+    images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: { canonical: "/game/wheel" },
+  alternates: { canonical: gameUrl("/game/wheel") },
 };
 
 export default function WheelPage() {

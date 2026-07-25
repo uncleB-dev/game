@@ -3,6 +3,7 @@ import Link from "next/link";
 import LottoGame from "./LottoGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
+import { gameUrl, GAME_OG_IMAGE } from "../site";
 
 export const metadata: Metadata = {
   title: "로또 추첨기 (3D) | UncleB Games",
@@ -12,10 +13,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "로또 추첨기 (3D) | UncleB Games",
     description: "유리 드럼 속 번호볼을 바람으로 섞고 당첨번호를 뽑아보세요.",
-    url: "https://unclebstudio.com/game/lotto",
-    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
+    url: gameUrl("/game/lotto"),
+    images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: { canonical: "/game/lotto" },
+  alternates: { canonical: gameUrl("/game/lotto") },
 };
 
 export default function LottoPage() {

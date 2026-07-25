@@ -3,6 +3,7 @@ import Link from "next/link";
 import DiceGame from "./DiceGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
+import { gameUrl, GAME_OG_IMAGE } from "../site";
 
 export const metadata: Metadata = {
   title: "주사위 던지기 (3D) | UncleB Games",
@@ -12,10 +13,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "주사위 던지기 (3D) | UncleB Games",
     description: "3D 주사위를 굴리고 흔들어보세요.",
-    url: "https://unclebstudio.com/game/dice",
-    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
+    url: gameUrl("/game/dice"),
+    images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: { canonical: "/game/dice" },
+  alternates: { canonical: gameUrl("/game/dice") },
 };
 
 export default function DicePage() {

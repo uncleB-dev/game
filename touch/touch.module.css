@@ -156,6 +156,24 @@
   100% { transform: scale(0.92); opacity: 0.9; }
 }
 
+/* READY / SET / GO! — 숫자보다 글자가 기니 폭에 맞춰 줄인다 */
+.countWord {
+  font-size: clamp(48px, 14vw, 120px);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* GO! 는 플레이가 이미 시작된 상태라 배경을 걷어내고 빠르게 사라진다 */
+.countLayerGo {
+  background: transparent;
+  animation: goFade 0.55s ease-out both;
+}
+@keyframes goFade {
+  0% { opacity: 1; }
+  60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* 나가기 (플레이 중엔 숨김) */
 .exitBtn {
   position: absolute;

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./game.module.css";
 import { GamesHubJsonLd } from "./seo";
+import { gameUrl, GAME_OG_IMAGE } from "./site";
 
 export const metadata: Metadata = {
   title: "UncleB Games — 미니게임 모음",
@@ -11,10 +12,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "UncleB Games — 미니게임 모음",
     description: "가볍고 재밌는 미니게임 모음. 친구들과 함께 즐겨보세요.",
-    url: "https://unclebstudio.com/game",
-    images: [{ url: "/logo/logo-full.png", width: 1200, height: 630 }],
+    url: gameUrl("/game"),
+    images: [{ url: GAME_OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: { canonical: "/game" },
+  alternates: { canonical: gameUrl("/game") },
 };
 
 type GameItem = {

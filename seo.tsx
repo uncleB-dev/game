@@ -3,7 +3,9 @@
  * 각 게임 페이지(VideoGame)와 허브(CollectionPage+ItemList)에 삽입한다.
  */
 
-const SITE = "https://unclebstudio.com";
+import { GAME_SITE, gameUrl } from "./site";
+
+const SITE = GAME_SITE;
 
 export function GameJsonLd({
   name,
@@ -21,7 +23,7 @@ export function GameJsonLd({
     "@type": "VideoGame",
     name,
     description,
-    url: `${SITE}${path}`,
+    url: gameUrl(path),
     inLanguage: "ko",
     gamePlatform: ["Web Browser", "Mobile Web"],
     applicationCategory: "GameApplication",
@@ -31,7 +33,7 @@ export function GameJsonLd({
     author: {
       "@type": "Organization",
       name: "UncleB Studio",
-      url: SITE,
+      url: "https://unclebstudio.com",
     },
     offers: { "@type": "Offer", price: "0", priceCurrency: "KRW" },
   };
@@ -54,9 +56,9 @@ export function GamesHubJsonLd({
     name: "UncleB Games — 미니게임 모음",
     description:
       "설치·로그인 없이 브라우저에서 바로 즐기는 무료 미니게임 모음. 사다리타기, 룰렛, 3D 주사위, 윷놀이, 스피드 터치, 로또 추첨기.",
-    url: `${SITE}/game`,
+    url: SITE,
     inLanguage: "ko",
-    isPartOf: { "@type": "WebSite", name: "UncleB Studio", url: SITE },
+    isPartOf: { "@type": "WebSite", name: "UncleB Games", url: SITE },
     mainEntity: {
       "@type": "ItemList",
       itemListElement: games.map((g, i) => ({
@@ -64,7 +66,7 @@ export function GamesHubJsonLd({
         position: i + 1,
         name: g.name,
         description: g.description,
-        url: `${SITE}${g.path}`,
+        url: gameUrl(g.path),
       })),
     },
   };
