@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import a from "./arcade.module.css";
 import { POPULAR_WINDOW_DAYS } from "./games";
 import {
@@ -125,7 +126,19 @@ export default function ArcadeHub({ plays, now }: Props) {
               }
             >
               <div className={a.cardTop}>
-                <span className={a.cardEmoji}>{g.emoji}</span>
+                {g.icon ? (
+                  <Image
+                    src={g.icon}
+                    alt=""
+                    width={76}
+                    height={76}
+                    className={a.cardIcon}
+                    /* 첫 화면 카드들은 우선 로드 — LCP 요소다 */
+                    priority={i < 4}
+                  />
+                ) : (
+                  <span className={a.cardEmoji}>{g.emoji}</span>
+                )}
                 <div className={a.badges}>
                   {g.isNew && <span className={`${a.badge} ${a.badgeNew}`}>NEW</span>}
                   {g.rank === 1 && !g.isNew && (

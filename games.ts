@@ -13,6 +13,13 @@
 export type Game = {
   /** 라우트 슬러그. 서비스 URL 은 `game.unclebstudio.com/<slug>` (코드상 라우트는 `/game/<slug>`) */
   slug: string;
+  /**
+   * 허브 카드 아이콘. 호스트 레포의 `public/game-icons/<slug>.webp` 에 있다
+   * (서브모듈엔 정적 파일을 둘 수 없어 호스트가 서빙한다).
+   * 아이콘이 없으면 비워두면 되고, 그 경우 emoji 로 대체된다.
+   */
+  icon?: string;
+  /** 아이콘 로딩 전/실패 시 대체 표시. 어드민 표에서도 이걸 쓴다. */
   emoji: string;
   title: string;
   /** 허브 카드 문구 */
@@ -28,6 +35,7 @@ export type Game = {
 export const GAMES: Game[] = [
   {
     slug: "ladder",
+    icon: "/game-icons/ladder.webp",
     emoji: "🪜",
     title: "사다리 게임",
     desc: "최대 10명 참가, 당첨 인원 자유 설정. 커피 내기부터 청소 당번까지!",
@@ -37,6 +45,7 @@ export const GAMES: Game[] = [
   },
   {
     slug: "wheel",
+    icon: "/game-icons/wheel.webp",
     emoji: "🎡",
     title: "빅휠",
     desc: "화려한 네온 룰렛! 항목을 넣고 돌려서 운명의 하나를 뽑아요.",
@@ -46,6 +55,7 @@ export const GAMES: Game[] = [
   },
   {
     slug: "dice",
+    icon: "/game-icons/dice.webp",
     emoji: "🎲",
     title: "주사위 던지기",
     desc: "3D 주사위를 화면 안에서 굴려요. 개수 선택, 폰 흔들기 지원!",
@@ -55,6 +65,7 @@ export const GAMES: Game[] = [
   },
   {
     slug: "yut",
+    icon: "/game-icons/yut.webp",
     emoji: "🪵",
     title: "윷놀이",
     desc: "윷가락 4개를 던져 도·개·걸·윷·모·빽도! 흔들거나 버튼으로.",
@@ -64,6 +75,7 @@ export const GAMES: Game[] = [
   },
   {
     slug: "touch",
+    icon: "/game-icons/touch.webp",
     emoji: "⚡",
     title: "스피드 터치",
     desc: "1~4명이 화면을 나눠 동시에! 제한시간 안에 더 많이 터치하면 승리.",
@@ -73,6 +85,7 @@ export const GAMES: Game[] = [
   },
   {
     slug: "lotto",
+    icon: "/game-icons/lotto.webp",
     emoji: "🎱",
     title: "로또 추첨기",
     desc: "에어젯 바람으로 볼을 섞고 하나씩 추첨! 번호·개수 설정 가능.",
@@ -82,6 +95,7 @@ export const GAMES: Game[] = [
   },
   {
     slug: "pinball",
+    icon: "/game-icons/pinball.webp",
     emoji: "🔮",
     title: "복불복 핀볼",
     desc: "이름을 넣고 구슬을 굴려 당첨자 추첨! 물리 핀볼 레이스, 6가지 맵.",

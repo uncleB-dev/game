@@ -346,6 +346,24 @@
   line-height: 1;
   filter: drop-shadow(0 0 14px var(--neon));
 }
+
+/*
+ * 생성 아이콘. 원본이 어두운 배경 위 네온이라 카드와 자연스럽게 섞이도록
+ * 모서리를 둥글리고 게임 고유색으로 발광을 얹는다.
+ */
+.cardIcon {
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+  object-fit: cover;
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--neon) 55%, transparent));
+  transition: transform 0.22s ease-out, filter 0.22s;
+}
+.card:hover .cardIcon,
+.card:focus-visible .cardIcon {
+  transform: scale(1.06) rotate(-2deg);
+  filter: drop-shadow(0 0 26px var(--neon));
+}
 .cardTitle {
   font-size: 20px;
   font-weight: 900;
@@ -471,6 +489,10 @@
   .rise,
   .card:hover .playBtn {
     animation: none !important;
+  }
+  .card:hover .cardIcon,
+  .card:focus-visible .cardIcon {
+    transform: none;
   }
   .spotlight { display: none; }
   .card { transition: border-color 0.2s, box-shadow 0.2s; }
