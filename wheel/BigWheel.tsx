@@ -7,6 +7,7 @@ import wheel from "./wheel.module.css";
 import Confetti from "../Confetti";
 import { trackPlay } from "../track";
 import FullscreenToggle from "../FullscreenToggle";
+import { NEON_PALETTE } from "../palette";
 
 /**
  * 빅휠 (행운의 룰렛) — 항목을 정하고 돌려서 하나를 뽑는다.
@@ -17,20 +18,7 @@ const MIN = 2;
 const MAX = 12;
 const BULBS = 24;
 
-const PALETTE = [
-  "#1A5CFF",
-  "#FF6A00",
-  "#00B894",
-  "#E84393",
-  "#6C5CE7",
-  "#0984E3",
-  "#E1A700",
-  "#00CEC9",
-  "#D63031",
-  "#20BF6B",
-  "#8E44AD",
-  "#F368E0",
-];
+const PALETTE = NEON_PALETTE;
 
 const DEFAULT_ENTRIES = ["🍕 피자", "🍗 치킨", "🍔 버거", "🍜 라면", "🍣 초밥", "🥗 샐러드"];
 
@@ -145,7 +133,7 @@ export default function BigWheel() {
           >
             <svg className={wheel.wheelSvg} viewBox="-100 -100 200 200">
               {sectors.map((s, i) => (
-                <path key={i} d={s.d} fill={s.color} stroke="#ffffff" strokeWidth={1.2} />
+                <path key={i} d={s.d} fill={s.color} stroke="rgba(7,7,15,0.85)" strokeWidth={1.2} />
               ))}
               {sectors.map((s, i) => (
                 <text
