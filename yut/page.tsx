@@ -22,7 +22,10 @@ export const metadata: Metadata = {
 
 export default function YutPage() {
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{ ["--gm-neon" as string]: "#FFB020" } as React.CSSProperties}
+    >
       <TrackView slug="yut" />
       <GameJsonLd
         name="윷놀이 (3D)"

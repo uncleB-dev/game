@@ -22,7 +22,10 @@ export const metadata: Metadata = {
 
 export default function TouchPage() {
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{ ["--gm-neon" as string]: "#39FF14" } as React.CSSProperties}
+    >
       <TrackView slug="touch" />
       <GameJsonLd
         name="스피드 터치"

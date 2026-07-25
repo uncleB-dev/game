@@ -22,7 +22,10 @@ export const metadata: Metadata = {
 
 export default function LottoPage() {
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{ ["--gm-neon" as string]: "#00E5FF" } as React.CSSProperties}
+    >
       <TrackView slug="lotto" />
       <GameJsonLd
         name="로또 번호 추첨기 (3D)"

@@ -7,6 +7,7 @@ import styles from "../game.module.css";
 import lt from "./lotto.module.css";
 import Confetti from "../Confetti";
 import { trackPlay } from "../track";
+import FullscreenToggle from "../FullscreenToggle";
 
 /**
  * 로또 번호 추첨기 — three.js + cannon-es.
@@ -571,13 +572,11 @@ export default function LottoGame() {
       {/* 드럼 */}
       <div className={`${lt.arenaWrap} ${expanded ? lt.arenaFull : ""}`}>
         <div className={lt.arena} ref={mountRef} />
-        <button
-          className={lt.fsBtn}
-          onClick={toggleFs}
-          aria-label={expanded ? "전체화면 닫기" : "전체화면"}
-        >
-          {expanded ? "✕" : "⛶"}
-        </button>
+        <FullscreenToggle
+          expanded={expanded}
+          onToggle={toggleFs}
+          hint=<><b>전체화면</b>으로 보면 볼 번호가 잘 보여요!</>
+        />
         {expanded && (
           <div className={lt.fsControls}>
             {phase === "idle" && (

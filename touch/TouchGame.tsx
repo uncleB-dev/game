@@ -16,8 +16,10 @@ import { trackPlay } from "../track";
  * 랜덤 대기가 있어야 GO 타이밍을 미리 재고 손을 내리치는 부정 출발을 막을 수 있다.
  */
 
-const COLORS = ["#1A5CFF", "#FF6A00", "#00B894", "#E84393"];
-const SOFT = ["#eef4ff", "#fff1e6", "#e8fbf5", "#fdeef6"];
+// 아케이드 톤 — 밝은 구역 배경은 네온 UI 안에서 눈이 아프고 톤도 어긋났다.
+// 어두운 바탕에 플레이어 색만 은은히 깔아 터치 대상은 분명하되 눈부시지 않게 한다.
+const COLORS = ["#00E5FF", "#FF2D95", "#39FF14", "#A855F7"];
+const SOFT = ["#071a24", "#22071a", "#07220f", "#160a26"];
 const DURATIONS = [10, 15, 20, 30, 45, 60];
 const MIN_P = 1;
 const MAX_P = 4;

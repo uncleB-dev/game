@@ -22,7 +22,10 @@ export const metadata: Metadata = {
 
 export default function DicePage() {
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{ ["--gm-neon" as string]: "#A855F7" } as React.CSSProperties}
+    >
       <TrackView slug="dice" />
       <GameJsonLd
         name="주사위 던지기 (3D)"

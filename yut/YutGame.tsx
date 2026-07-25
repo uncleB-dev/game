@@ -8,6 +8,7 @@ import yut from "./yut.module.css";
 import Confetti from "../Confetti";
 import { useShake } from "../useShake";
 import { trackPlay } from "../track";
+import FullscreenToggle from "../FullscreenToggle";
 
 /**
  * 윷놀이 — three.js + cannon-es 실제 3D 물리 (주사위와 동일한 규칙 구조).
@@ -638,13 +639,11 @@ export default function YutGame() {
     <div className={styles.panel}>
       <div className={`${yut.arenaWrap} ${expanded ? yut.arenaFull : ""}`}>
         <div className={yut.arena} ref={mountRef} />
-        <button
-          className={yut.fsBtn}
-          onClick={toggleFs}
-          aria-label={expanded ? "전체화면 닫기" : "전체화면"}
-        >
-          {expanded ? "✕" : "⛶"}
-        </button>
+        <FullscreenToggle
+          expanded={expanded}
+          onToggle={toggleFs}
+          hint=<><b>전체화면</b>으로 던지면 윷이 크게 보여요!</>
+        />
         {expanded && (
           <div className={yut.fsControls}>
             <button

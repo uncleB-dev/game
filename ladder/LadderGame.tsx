@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../game.module.css";
 import { trackPlay } from "../track";
+import FullscreenToggle from "../FullscreenToggle";
 
 /**
  * 사다리 게임 (Amidakuji)
@@ -190,6 +191,7 @@ export default function LadderGame() {
 
   // 게임 상태
   const [game, setGame] = useState<Game | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const [revealed, setRevealed] = useState<number[]>([]); // 공개된 시작 col (클릭 순)
   const [settled, setSettled] = useState<number[]>([]); // 애니메이션 끝난 시작 col
 
@@ -421,133 +423,140 @@ export default function LadderGame() {
 
   return (
     <div className={styles.panel}>
-      <div className={styles.boardWrap}>
-        <svg
-          className={styles.board}
-          viewBox={`0 0 ${vbW} ${vbH}`}
-          width="100%"
-          style={{ minWidth: Math.max(300, game.cols * 66), maxWidth: vbW }}
-          role="img"
-          aria-label="사다리"
-        >
-          {/* 세로줄 */}
-          {game.names.map((_, i) => (
-            <line
-              key={`pole-${i}`}
-              className={styles.pole}
-              x1={colX(i)}
-              y1={TOP_Y}
-              x2={colX(i)}
-              y2={yBottom}
-            />
-          ))}
+      <div className={`${styles.boardStage} ${expanded ? styles.boardStageFull : ""}`}>
+        <FullscreenToggle
+          expanded={expanded}
+          onToggle={() => setExpanded((v) => !v)}
+          hint={<>참가자가 많을 땐 <b>전체화면</b>이 훨씬 편해요!</>}
+        />
+        <div className={styles.boardWrap}>
+          <svg
+            className={styles.board}
+            viewBox={`0 0 ${vbW} ${vbH}`}
+            width="100%"
+            style={{ minWidth: Math.max(300, game.cols * 66), maxWidth: vbW }}
+            role="img"
+            aria-label="사다리"
+          >
+            {/* 세로줄 */}
+            {game.names.map((_, i) => (
+              <line
+                key={`pole-${i}`}
+                className={styles.pole}
+                x1={colX(i)}
+                y1={TOP_Y}
+                x2={colX(i)}
+                y2={yBottom}
+              />
+            ))}
 
-          {/* 가로줄 */}
-          {game.rungs.map((row, r) =>
-            row.map((on, i) =>
-              on ? (
-                <line
-                  key={`rung-${r}-${i}`}
-                  className={styles.rung}
-                  x1={colX(i)}
-                  y1={rowY(r)}
-                  x2={colX(i + 1)}
-                  y2={rowY(r)}
-                />
-              ) : null,
-            ),
-          )}
+            {/* 가로줄 */}
+            {game.rungs.map((row, r) =>
+              row.map((on, i) =>
+                on ? (
+                  <line
+                    key={`rung-${r}-${i}`}
+                    className={styles.rung}
+                    x1={colX(i)}
+                    y1={rowY(r)}
+                    x2={colX(i + 1)}
+                    y2={rowY(r)}
+                  />
+                ) : null,
+              ),
+            )}
 
-          {/* 공개된 경로 (애니메이션) */}
-          {revealed.map((s) => (
-            <TracePath
-              key={`path-${s}-${game.paths[s].d.length}`}
-              d={game.paths[s].d}
-              color={COLORS[s]}
-              speedRef={speedRef}
-              onDone={() =>
-                setSettled((prev) =>
-                  prev.includes(s) ? prev : [...prev, s],
-                )
-              }
-            />
-          ))}
+            {/* 공개된 경로 (애니메이션) */}
+            {revealed.map((s) => (
+              <TracePath
+                key={`path-${s}-${game.paths[s].d.length}`}
+                d={game.paths[s].d}
+                color={COLORS[s]}
+                speedRef={speedRef}
+                onDone={() =>
+                  setSettled((prev) =>
+                    prev.includes(s) ? prev : [...prev, s],
+                  )
+                }
+              />
+            ))}
 
-          {/* 상단: 참가자 칩 — 누르면 공개, 누르고 있는 동안은 빠르게 */}
-          {game.names.map((name, i) => {
-            const on = revealed.includes(i);
-            return (
-              <g
-                key={`top-${i}`}
-                className={styles.topCell}
-                onPointerDown={() => {
-                  speedUp();
-                  reveal(i);
-                }}
-                onPointerUp={speedDown}
-                onPointerLeave={speedDown}
-                onPointerCancel={speedDown}
-              >
-                <rect
-                  className={styles.chipRect}
-                  x={colX(i) - 30}
-                  y={TOP_Y - LABEL_H}
-                  width={60}
-                  height={LABEL_H - 6}
-                  rx={9}
-                  fill={on ? COLORS[i] : "#eef2fb"}
-                />
-                <text
-                  className={styles.cellText}
-                  x={colX(i)}
-                  y={TOP_Y - LABEL_H + (LABEL_H - 6) / 2}
-                  fontSize={14}
-                  fill={on ? "#fff" : "#1a1a2e"}
+            {/* 상단: 참가자 칩 — 누르면 공개, 누르고 있는 동안은 빠르게 */}
+            {game.names.map((name, i) => {
+              const on = revealed.includes(i);
+              return (
+                <g
+                  key={`top-${i}`}
+                  className={styles.topCell}
+                  onPointerDown={() => {
+                    speedUp();
+                    reveal(i);
+                  }}
+                  onPointerUp={speedDown}
+                  onPointerLeave={speedDown}
+                  onPointerCancel={speedDown}
                 >
-                  {truncate(name)}
-                </text>
-              </g>
-            );
-          })}
+                  <rect
+                    className={styles.chipRect}
+                    x={colX(i) - 30}
+                    y={TOP_Y - LABEL_H}
+                    width={60}
+                    height={LABEL_H - 6}
+                    rx={9}
+                    fill={on ? COLORS[i] : "#eef2fb"}
+                  />
+                  <text
+                    className={styles.cellText}
+                    x={colX(i)}
+                    y={TOP_Y - LABEL_H + (LABEL_H - 6) / 2}
+                    fontSize={14}
+                    fill={on ? "#fff" : "#1a1a2e"}
+                  >
+                    {truncate(name)}
+                  </text>
+                </g>
+              );
+            })}
 
-          {/* 하단: 결과 칸 */}
-          {game.results.map((res, i) => {
-            const hit = settledEnds.includes(i);
-            const isWin = res === WIN_LABEL;
-            return (
-              <g key={`bottom-${i}`}>
-                <rect
-                  className={hit ? styles.popped : undefined}
-                  x={colX(i) - 34}
-                  y={yBottom + 6}
-                  width={68}
-                  height={LABEL_H}
-                  rx={9}
-                  fill={
-                    hit
-                      ? isWin
-                        ? "#ff6a00"
-                        : "#1a5cff"
-                      : isWin
-                        ? "#fff1e6"
-                        : "#f1f4fb"
-                  }
-                  stroke={isWin && !hit ? "#ffd9a8" : "transparent"}
-                />
-                <text
-                  className={styles.cellText}
-                  x={colX(i)}
-                  y={yBottom + 6 + LABEL_H / 2}
-                  fontSize={13}
-                  fill={hit ? "#fff" : isWin ? "#ff6a00" : "#42506a"}
-                >
-                  {truncate(res, 6)}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
+            {/* 하단: 결과 칸 */}
+            {game.results.map((res, i) => {
+              const hit = settledEnds.includes(i);
+              const isWin = res === WIN_LABEL;
+              return (
+                <g key={`bottom-${i}`}>
+                  <rect
+                    className={hit ? styles.popped : undefined}
+                    x={colX(i) - 34}
+                    y={yBottom + 6}
+                    width={68}
+                    height={LABEL_H}
+                    rx={9}
+                    fill={
+                      hit
+                        ? isWin
+                          ? "#ff6a00"
+                          : "#1a5cff"
+                        : isWin
+                          ? "#fff1e6"
+                          : "#f1f4fb"
+                    }
+                    stroke={isWin && !hit ? "#ffd9a8" : "transparent"}
+                  />
+                  <text
+                    className={styles.cellText}
+                    x={colX(i)}
+                    y={yBottom + 6 + LABEL_H / 2}
+                    fontSize={13}
+                    fill={hit ? "#fff" : isWin ? "#ff6a00" : "#42506a"}
+                  >
+                    {truncate(res, 6)}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+        </div>
 
       {revealed.length === 0 && (
         <p className={styles.hint}>

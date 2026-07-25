@@ -22,7 +22,10 @@ export const metadata: Metadata = {
 
 export default function WheelPage() {
   return (
-    <div className={styles.page}>
+    <div
+      className={styles.page}
+      style={{ ["--gm-neon" as string]: "#FF2D95" } as React.CSSProperties}
+    >
       <TrackView slug="wheel" />
       <GameJsonLd
         name="빅휠 (행운의 룰렛)"
