@@ -4,6 +4,7 @@ import DiceGame from "./DiceGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
+import TrackView from "../TrackView";
 
 export const metadata: Metadata = {
   title: "주사위 던지기 (3D) | UncleB Games",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default function DicePage() {
   return (
     <div className={styles.page}>
+      <TrackView slug="dice" />
       <GameJsonLd
         name="주사위 던지기 (3D)"
         description="실제 물리로 굴러가는 3D 주사위. 1~6개 선택, 폰 흔들기 지원."

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../game.module.css";
+import { trackPlay } from "../track";
 
 /**
  * 사다리 게임 (Amidakuji)
@@ -234,6 +235,7 @@ export default function LadderGame() {
   }, [resultMode, playerCount, winCount, customResults]);
 
   const start = () => {
+    trackPlay("ladder");
     setGame(buildGame(playerCount, resolveNames(), resolveResults()));
     setRevealed([]);
     setSettled([]);

@@ -7,6 +7,7 @@ import Confetti from "../Confetti";
 import { Roulette } from "./engine/roulette";
 import engineOptions from "./engine/options";
 import { stages } from "./engine/data/maps";
+import { trackPlay } from "../track";
 
 /**
  * 복불복 핀볼 — 구슬 물리 레이스로 당첨자를 뽑는 게임.
@@ -110,6 +111,7 @@ export default function PinballGame() {
   };
 
   const start = () => {
+    trackPlay("pinball");
     const roulette = rouletteRef.current;
     if (!roulette) return;
     const list = splitNames(names);

@@ -39,6 +39,9 @@ ladder/LadderGame.tsx → 사다리 게임 본체 ("use client")
 표의 경로는 **코드상 라우트**입니다. 실제 서비스 URL은 `/game` 접두사를 뗀 `game.unclebstudio.com/ladder` 형태입니다.
 
 ### 공용 유틸
+- **`games.ts` — 게임 목록 단일 원본.** 허브 카드·사이트맵·JSON-LD 가 전부 이걸 읽는다.
+- `sort.ts` — 허브 정렬 규칙 (신규 고정 + 인기순/최신순)
+- `track.ts` / `TrackView.tsx` — 조회·플레이 이벤트 기록 (`/api/game/events` 로 전송)
 - `site.ts` — 정본 호스트(`game.unclebstudio.com`) + `gameUrl()` 절대 URL 헬퍼
 - `sfx.ts` — Web Audio 오실레이터 합성 효과음 (음원 파일 없음)
 - `useShake.ts` — 흔들기(DeviceMotion) 감지 훅 (iOS 권한 처리 포함)
@@ -46,12 +49,18 @@ ladder/LadderGame.tsx → 사다리 게임 본체 ("use client")
 
 ## 새 게임 추가 방법
 
-1. `app/game/<game-name>/page.tsx` 라우트 + 본체 컴포넌트 작성
-2. metadata의 `openGraph.url` / `alternates.canonical` 은 `gameUrl("/game/<game-name>")` 사용
+1. `app/game/<slug>/page.tsx` 라우트 + 본체 컴포넌트 작성
+2. **`games.ts` 의 `GAMES` 배열에 항목 추가** (`releaseDate` 필수 — 출시 후 30일간
+   허브 맨 앞에 NEW 로 고정되는 기준이다). 허브 카드·사이트맵·JSON-LD 가 자동으로 따라온다.
+3. metadata의 `openGraph.url` / `alternates.canonical` 은 `gameUrl("/game/<slug>")` 사용
    (하드코딩 금지 — 정본이 서브도메인이라 상대 canonical은 잘못된 호스트로 해석됨)
-3. `page.tsx`(허브)의 `GAMES` 배열에 카드 추가
-4. 호스트 레포의 `public/sitemap-game.xml` 에 URL 추가
-5. 공용 스타일은 `game.module.css` 재사용
+4. 조회 기록: page.tsx 에 `<TrackView slug="<slug>" />` 한 줄
+5. 플레이 기록: 게임 시작 핸들러 첫 줄에 `trackPlay("<slug>")`
+   (허브의 '많이 하는 순' 정렬 기준. 페이지 로드당 1회만 집계된다)
+6. 공용 스타일은 `game.module.css` 재사용 (허브 전용 스타일은 `arcade.module.css`)
+
+> 사이트맵은 더 이상 손으로 관리하지 않는다. 호스트 레포의 `app/sitemap-game.xml/route.ts`
+> 가 `GAMES` 를 읽어 생성한다.
 
 ## 호스트 연동 (서브모듈)
 

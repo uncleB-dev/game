@@ -4,6 +4,7 @@ import LottoGame from "./LottoGame";
 import styles from "../game.module.css";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
+import TrackView from "../TrackView";
 
 export const metadata: Metadata = {
   title: "로또 추첨기 (3D) | UncleB Games",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 export default function LottoPage() {
   return (
     <div className={styles.page}>
+      <TrackView slug="lotto" />
       <GameJsonLd
         name="로또 번호 추첨기 (3D)"
         description="에어젯 바람으로 번호볼을 섞는 실감나는 3D 로또 추첨기."

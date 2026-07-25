@@ -7,6 +7,7 @@ import styles from "../game.module.css";
 import yut from "./yut.module.css";
 import Confetti from "../Confetti";
 import { useShake } from "../useShake";
+import { trackPlay } from "../track";
 
 /**
  * 윷놀이 — three.js + cannon-es 실제 3D 물리 (주사위와 동일한 규칙 구조).
@@ -441,6 +442,7 @@ export default function YutGame() {
 
     // 높은 곳에서 회전하며 낙하
     const throwSticks = () => {
+      trackPlay("yut");
       wakeAll();
       const sx = Math.max(0.4, Math.min(W / 2 - SL / 2, 1.2));
       const sz = Math.max(0.4, Math.min(D / 2 - SL / 2, 1.2));

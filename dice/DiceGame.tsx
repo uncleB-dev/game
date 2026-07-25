@@ -8,6 +8,7 @@ import styles from "../game.module.css";
 import dice from "./dice.module.css";
 import Confetti from "../Confetti";
 import { useShake } from "../useShake";
+import { trackPlay } from "../track";
 
 /**
  * 주사위 던지기 — three.js(렌더) + cannon-es(강체 물리) 실제 3D 시뮬레이션.
@@ -384,6 +385,7 @@ export default function DiceGame() {
     // 버튼: 높은 곳(기존 3배)에서 중앙 상공에 흩뿌려 떨어뜨리기.
     // 높이 뜬 동안 원근으로 커져도 화면 안에 있도록 수평 스폰을 중앙부로 제한.
     const roll = () => {
+      trackPlay("dice");
       wakeAll();
       const sx = Math.max(0.4, Math.min(W / 2 - DIE, 1.2));
       const sz = Math.max(0.4, Math.min(D / 2 - DIE, 1.2));

@@ -6,6 +6,7 @@ import * as CANNON from "cannon-es";
 import styles from "../game.module.css";
 import lt from "./lotto.module.css";
 import Confetti from "../Confetti";
+import { trackPlay } from "../track";
 
 /**
  * 로또 번호 추첨기 — three.js + cannon-es.
@@ -486,6 +487,7 @@ export default function LottoGame() {
   };
 
   const begin = () => {
+    trackPlay("lotto");
     phaseRef.current = "mix";
     setPhase("mix");
     setPicked([]);
