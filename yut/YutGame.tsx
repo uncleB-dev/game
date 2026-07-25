@@ -637,7 +637,7 @@ export default function YutGame() {
 
   return (
     <div className={styles.panel}>
-      <div className={`${yut.arenaWrap} ${expanded ? yut.arenaFull : ""}`}>
+      <div className={`${yut.arenaWrap} ${styles.scanlines} ${expanded ? yut.arenaFull : ""}`}>
         <div className={yut.arena} ref={mountRef} />
         <FullscreenToggle
           expanded={expanded}

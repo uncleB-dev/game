@@ -42,14 +42,26 @@
   overflow-x: hidden;
 }
 
-/* CRT 스캔라인 — 허브와 같은 질감 */
-.page::after {
+/*
+ * CRT 스캔라인은 **게임 화면 안쪽에만** 쓴다.
+ *
+ * 페이지 전체에 깔았더니 글자·버튼 위까지 줄이 지나가 읽기 불편하고 거슬렸다.
+ * 분위기는 게임이 그려지는 면에서만 나면 충분하다.
+ *
+ * 게임 TSX 에서 아레나 컨테이너에 이 클래스를 함께 얹어 쓴다.
+ *   className={`${dice.arenaWrap} ${styles.scanlines} ...`}
+ */
+.scanlines {
+  position: relative;
+}
+.scanlines::after {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 40;
+  z-index: 4;
   pointer-events: none;
-  opacity: 0.42;
+  border-radius: inherit;
+  opacity: 0.34;
   background: repeating-linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0) 0px,
@@ -155,13 +167,18 @@
 }
 
 /* ---- 패널(설정/게임 컨테이너) ---- */
+/*
+ * ⚠️ backdrop-filter 를 여기에 넣지 말 것.
+ * backdrop-filter 가 걸린 요소는 자손의 position:fixed 에 대해 새 기준
+ * 컨테이너가 된다. 그러면 게임들의 전체화면(.arenaFull 등 inset:0 fixed)이
+ * 화면이 아니라 이 패널 박스 안에 갇힌다. transform·filter·perspective 도 같다.
+ */
 .panel {
-  background: linear-gradient(160deg, var(--gm-panel-2), var(--gm-panel));
+  background: linear-gradient(160deg, rgba(20, 22, 42, 0.92), rgba(12, 13, 28, 0.92));
   border: 1px solid var(--gm-line);
   border-radius: 22px;
   padding: 26px;
   box-shadow: 0 30px 70px -40px #000, inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(6px);
 }
 @media (max-width: 520px) {
   .panel { padding: 18px 15px; border-radius: 18px; }

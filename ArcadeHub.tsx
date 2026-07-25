@@ -60,7 +60,6 @@ export default function ArcadeHub({ plays, now }: Props) {
       <div className={a.bgGlow} aria-hidden />
       <div className={a.bgGrid} aria-hidden />
       <div className={a.spotlight} aria-hidden />
-      <div className={a.bgScan} aria-hidden />
 
       <div className={a.shell}>
         <div className={a.topbar}>

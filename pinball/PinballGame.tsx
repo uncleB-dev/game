@@ -164,7 +164,7 @@ export default function PinballGame() {
   return (
     <div className={styles.panel}>
       {/* ── 아레나 ── */}
-      <div className={`${pb.arenaWrap} ${expanded ? pb.arenaFull : ""}`}>
+      <div className={`${pb.arenaWrap} ${styles.scanlines} ${expanded ? pb.arenaFull : ""}`}>
         <div className={pb.arena} ref={mountRef} />
         <FullscreenToggle
           expanded={expanded}
