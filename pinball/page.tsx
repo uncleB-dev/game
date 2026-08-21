@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PinballGame from "./PinballGame";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
 import TrackView from "../TrackView";
@@ -53,6 +54,8 @@ export default function PinballPage() {
         </header>
 
         <PinballGame />
+
+        <CoupangBanner />
 
         <p className={styles.hint} style={{ marginTop: 18, fontSize: 12 }}>
           원작{" "}

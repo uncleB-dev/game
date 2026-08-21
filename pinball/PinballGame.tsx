@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import pb from "./pinball.module.css";
 import Confetti from "../Confetti";
 import { Roulette } from "./engine/roulette";
@@ -315,6 +316,7 @@ export default function PinballGame() {
                 닫기
               </button>
             </div>
+            <CoupangBanner />
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import TouchGame from "./TouchGame";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
 import TrackView from "../TrackView";
@@ -53,6 +54,8 @@ export default function TouchPage() {
         </header>
 
         <TouchGame />
+
+        <CoupangBanner />
       </div>
     </div>
   );

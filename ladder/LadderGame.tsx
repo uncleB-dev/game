@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import { trackPlay } from "../track";
 import FullscreenToggle from "../FullscreenToggle";
 import { NEON_PALETTE, WIN_COLOR, LOSE_COLOR } from "../palette";
@@ -585,6 +586,9 @@ export default function LadderGame() {
             })}
         </div>
       )}
+
+      {/* 결과가 나오기 시작하면 광고 노출 (결과 요약 아래) */}
+      {settled.length > 0 && <CoupangBanner />}
 
       <div className={styles.actions}>
         <button

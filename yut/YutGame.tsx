@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import yut from "./yut.module.css";
 import Confetti from "../Confetti";
 import { useShake } from "../useShake";
@@ -741,6 +742,7 @@ export default function YutGame() {
                 닫기
               </button>
             </div>
+            <CoupangBanner />
           </div>
         </div>
       )}

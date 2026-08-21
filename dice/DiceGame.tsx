@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import * as CANNON from "cannon-es";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import dice from "./dice.module.css";
 import Confetti from "../Confetti";
 import { useShake } from "../useShake";
@@ -688,6 +689,7 @@ export default function DiceGame() {
                 닫기
               </button>
             </div>
+            <CoupangBanner />
           </div>
         </div>
       )}

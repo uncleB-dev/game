@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LadderGame from "./LadderGame";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import { GameJsonLd } from "../seo";
 import { gameUrl, GAME_OG_IMAGE } from "../site";
 import TrackView from "../TrackView";
@@ -54,6 +55,8 @@ export default function LadderPage() {
         </header>
 
         <LadderGame />
+
+        <CoupangBanner />
       </div>
     </div>
   );

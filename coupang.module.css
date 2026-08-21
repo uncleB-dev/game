@@ -1,0 +1,25 @@
+/* 쿠팡 파트너스 배너 — 다크 네온 테마 위에 얹는 중립 스타일 */
+
+.wrap {
+  width: 100%;
+  margin: 18px auto 0;
+  max-width: 680px;
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.caption {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+  color: #6b7690;
+  opacity: 0.85;
+}

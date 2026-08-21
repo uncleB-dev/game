@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import t from "./touch.module.css";
 import Confetti from "../Confetti";
 import { Sfx } from "../sfx";
@@ -397,6 +398,7 @@ export default function TouchGame() {
                     설정으로
                   </button>
                 </div>
+                <CoupangBanner />
               </div>
             </div>
           )}

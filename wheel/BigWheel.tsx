@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import wheel from "./wheel.module.css";
 import Confetti from "../Confetti";
 import { trackPlay } from "../track";
@@ -225,6 +226,7 @@ export default function BigWheel() {
                 닫기
               </button>
             </div>
+            <CoupangBanner />
           </div>
         </div>
       )}

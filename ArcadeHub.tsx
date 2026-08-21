@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import a from "./arcade.module.css";
+import CoupangBanner from "./CoupangBanner";
 import { POPULAR_WINDOW_DAYS } from "./games";
 import {
   DEFAULT_SORT,
@@ -177,6 +178,8 @@ export default function ArcadeHub({ plays, now }: Props) {
             </div>
           </div>
         </div>
+
+        <CoupangBanner />
 
         <p className={a.footer}>
           전부 무료 · 설치 없음 · 로그인 없음

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import styles from "../game.module.css";
+import CoupangBanner from "../CoupangBanner";
 import lt from "./lotto.module.css";
 import Confetti from "../Confetti";
 import { trackPlay } from "../track";
@@ -688,6 +689,7 @@ export default function LottoGame() {
                 닫기
               </button>
             </div>
+            <CoupangBanner />
           </div>
         </div>
       )}
