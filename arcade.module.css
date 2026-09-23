@@ -418,6 +418,11 @@
   color: var(--text-dim);
   border: 1px solid rgba(255, 255, 255, 0.16);
 }
+.badgeAndroid {
+  color: #0b0b12;
+  background: #39ff14;
+  box-shadow: 0 0 14px rgba(57, 255, 20, 0.55);
+}
 
 .cardFoot {
   display: flex;

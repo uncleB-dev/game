@@ -35,6 +35,7 @@ ladder/LadderGame.tsx → 사다리 게임 본체 ("use client")
 | ⚡ 스피드 터치 | `/game/touch` | 1~4명 화면 분할 동시 터치 대결 (10~60초) |
 | 🎱 로또 추첨기 | `/game/lotto` | 에어젯 물리로 볼 섞고 추첨 (번호·개수 설정) |
 | 🔮 복불복 핀볼 | `/game/pinball` | 구슬 물리 레이스 당첨자 추첨, 6맵 (원작 lazygyu/roulette MIT) |
+| 🎱 엉클비 당구 | `/game/billiards` | **안드로이드 전용**(APK). 소개 + 설치 파일 내려받기 페이지. 앱 소스는 `uncleB-dev/billiards-android`, APK 정보는 `billiards/apk.ts` |
 
 표의 경로는 **코드상 라우트**입니다. 실제 서비스 URL은 `/game` 접두사를 뗀 `game.unclebstudio.com/ladder` 형태입니다.
 
@@ -58,6 +59,9 @@ ladder/LadderGame.tsx → 사다리 게임 본체 ("use client")
 5. 플레이 기록: 게임 시작 핸들러 첫 줄에 `trackPlay("<slug>")`
    (허브의 '많이 하는 순' 정렬 기준. 페이지 로드당 1회만 집계된다)
 6. 공용 스타일은 `game.module.css` 재사용 (허브 전용 스타일은 `arcade.module.css`)
+
+> 안드로이드 전용 게임(`platform: "android"`)은 카드에 ANDROID 배지·APK 버튼이 붙고, 페이지는 소개+APK 내려받기다.
+> APK 파일은 호스트의 `public/dl/` 에 두고 `<slug>/apk.ts` 의 url·version·size·date·sha256 을 갱신한다. 내려받기 클릭이 `trackPlay` 다.
 
 > 사이트맵은 더 이상 손으로 관리하지 않는다. 호스트 레포의 `app/sitemap-game.xml/route.ts`
 > 가 `GAMES` 를 읽어 생성한다.

@@ -12,12 +12,20 @@ export function GameJsonLd({
   description,
   path,
   genre,
+  platform = "web",
+  downloadUrl,
+  version,
 }: {
   name: string;
   description: string;
   path: string;
   genre: string;
+  /** android 면 설치형 앱으로 표기한다(APK 링크·버전 포함). */
+  platform?: "web" | "android";
+  downloadUrl?: string;
+  version?: string;
 }) {
+  const android = platform === "android";
   const data = {
     "@context": "https://schema.org",
     "@type": "VideoGame",
@@ -25,9 +33,11 @@ export function GameJsonLd({
     description,
     url: gameUrl(path),
     inLanguage: "ko",
-    gamePlatform: ["Web Browser", "Mobile Web"],
+    gamePlatform: android ? ["Android"] : ["Web Browser", "Mobile Web"],
     applicationCategory: "GameApplication",
-    operatingSystem: "Any",
+    operatingSystem: android ? "Android" : "Any",
+    ...(android && downloadUrl ? { downloadUrl } : {}),
+    ...(android && version ? { softwareVersion: version } : {}),
     isAccessibleForFree: true,
     genre,
     author: {

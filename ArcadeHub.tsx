@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import a from "./arcade.module.css";
 import CoupangBanner from "./CoupangBanner";
-import { POPULAR_WINDOW_DAYS } from "./games";
+import { POPULAR_WINDOW_DAYS, WEB_GAME_COUNT } from "./games";
 import {
   DEFAULT_SORT,
   SORT_LABELS,
@@ -83,7 +83,8 @@ export default function ArcadeHub({ plays, now }: Props) {
             <span className={a.titleNeonAlt}>엉클비 오락실</span>
           </h1>
           <p className={a.subtitle}>
-            설치도 로그인도 없이 바로 즐기는 미니게임 {games.length}종.
+            설치도 로그인도 없이 바로 즐기는 미니게임 {WEB_GAME_COUNT}종
+            {games.length > WEB_GAME_COUNT ? ` + 안드로이드 게임 ${games.length - WEB_GAME_COUNT}종` : ""}.
             <br />
             친구랑, 회식 자리에서, 혼자 심심할 때.
           </p>
@@ -142,6 +143,9 @@ export default function ArcadeHub({ plays, now }: Props) {
                 )}
                 <div className={a.badges}>
                   {g.isNew && <span className={`${a.badge} ${a.badgeNew}`}>NEW</span>}
+                  {g.platform === "android" && (
+                    <span className={`${a.badge} ${a.badgeAndroid}`}>📱 ANDROID</span>
+                  )}
                   {g.rank === 1 && !g.isNew && (
                     <span className={`${a.badge} ${a.badgeHot}`}>🔥 인기 1위</span>
                   )}
@@ -160,7 +164,7 @@ export default function ArcadeHub({ plays, now }: Props) {
                     ? `최근 ${POPULAR_WINDOW_DAYS}일 ${g.plays.toLocaleString("ko-KR")}판`
                     : "아직 기록 없음"}
                 </span>
-                <span className={a.playBtn}>▸ PLAY</span>
+                <span className={a.playBtn}>{g.platform === "android" ? "▸ APK 설치" : "▸ PLAY"}</span>
               </div>
             </Link>
           ))}
@@ -182,7 +186,7 @@ export default function ArcadeHub({ plays, now }: Props) {
         <CoupangBanner />
 
         <p className={a.footer}>
-          전부 무료 · 설치 없음 · 로그인 없음
+          전부 무료 · 로그인 없음 · 웹 게임은 설치 없음
           <br />
           made by <a href="https://unclebstudio.com">엉클비스튜디오</a>
         </p>

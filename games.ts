@@ -30,6 +30,11 @@ export type Game = {
   releaseDate: string;
   /** 네온 강조색 — 카드 호버 시 점등되는 색 */
   neon: string;
+  /**
+   * 실행 방식. 기본은 브라우저(web). `android` 면 카드에 ANDROID 배지가 붙고
+   * 버튼이 PLAY 대신 APK 로 바뀐다(페이지는 소개 + 설치 파일 내려받기).
+   */
+  platform?: "web" | "android";
 };
 
 export const GAMES: Game[] = [
@@ -103,7 +108,21 @@ export const GAMES: Game[] = [
     releaseDate: "2026-07-23",
     neon: "#FF2D95",
   },
+  {
+    slug: "billiards",
+    icon: "/game-icons/billiards.webp",
+    emoji: "🎱",
+    title: "엉클비 당구 (4구·3구)",
+    desc: "광고 없이 혼자 계속 치는 캐롬 당구. 실제 물리, 당점·힘·두께, 디자인 조합. 안드로이드 APK.",
+    genre: "스포츠 · 당구",
+    releaseDate: "2026-09-23",
+    neon: "#39FF14",
+    platform: "android",
+  },
 ];
+
+/** 브라우저에서 바로 하는 게임 수(허브 문구용). */
+export const WEB_GAME_COUNT = GAMES.filter((g) => (g.platform ?? "web") === "web").length;
 
 /** 출시 후 이 기간 동안 허브 맨 앞에 NEW 로 고정된다. */
 export const NEW_WINDOW_DAYS = 30;
